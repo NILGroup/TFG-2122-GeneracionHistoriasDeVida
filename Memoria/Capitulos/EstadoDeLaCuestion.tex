@@ -1,16 +1,106 @@
 \chapter{Estado de la Cuestión}
 \label{cap:estadoDeLaCuestion}
 
-En el estado de la cuestión es donde aparecen gran parte de las referencias bibliográficas del trabajo. Una de las formas más cómodas de gestionar la bibliografía en {\LaTeX} es utilizando \textbf{bibtex}. Las entradas bibliográficas deben estar en un fichero con extensión \textit{.bib} (con esta plantilla se proporcionan 3, dos de los cuales están vacíos). Cada entrada bibliográfica tiene una clave que permite referenciarla desde cualquier parte del texto con los siguiente comandos:
 
-\begin{itemize}
-\item Referencia bibliografica con cite: \cite{ldesc2e}
-\item Referencia bibliográfica con citep: \citep{notsoshort}
-\item Referencia bibliográfica con citet: \citet{latexAPrimer}
-\end{itemize}
+\section{Alzheimer e historias de vida}
+La pirámide de población modifica su estructura continuamente debido al progresivo envejecimiento de población generalizado. En el 2050, las personas mayores de 65 años constituirán el 16\% de la población mundial frente al 8\%  del año 2010. Una de las enfermedades más comunes dentro de este rango de población es la enfermedad del Alzheimer, cuya prevalencia a nivel global se espera que supere todo dato conocido hasta ahora, ya que se estima que en 2050 se incremente el número de casos a 152.8 millones frente a los 57.4 millones de 2019. \citep{estalz}
 
-Es posible citar más de una fuente, como por ejemplo \citep{latexCompanion,LaTeXLamport,texKnuth}
+\figura{Vectorial/03EstadoDeLaCuestion/CerebroPersonaAlzheimer}{width=.7\textwidth}{fig:CerebroPersonaAlzheimer}%
+{Reducción del cerebro asociada al Alzheimer, \citet{mattson2004pathways}}
 
-Después, latex se ocupa de rellenar la sección de bibliografía con las entradas \textbf{que hayan sido citadas} (es decir, no con todas las entradas que hay en el .bib, sino sólo con aquellas que se hayan citado en alguna parte del texto).
+La enfermedad de Alzheimer es un trastorno neurológico caracterizado por cambios degenerativos en diferentes sistemas neurotransmisores que abocan finalmente a la muerte de las células nerviosas del cerebro encargadas del almacenamiento y procesamiento de la información. Las regiones del cerebro involucradas en la memoria y procesos de aprendizaje, asociadas a los lóbulos temporal y frontal, reducen su tamaño como resultado de la degeneración de las sinapsis y la muerte de las neuronas. En la figura ~\ref{fig:CerebroPersonaAlzheimer} se puede comprobar esta reducción.
 
-Bibtex es un programa separado de latex, pdflatex o cualquier otra cosa que se use para compilar los .tex, de manera que para que se rellene correctamente la sección de bibliografía es necesario compilar primero el trabajo (a veces es necesario compilarlo dos veces), compilar después con bibtex, y volver a compilar otra vez el trabajo (de nuevo, puede ser necesario compilarlo dos veces). 
+Es una enfermedad difícil de detectar ya que, por lo general, los síntomas iniciales de la enfermedad suelen atribuirse a un olvido puntual o la vejez, nada más lejos de la realidad. Según avanza la enfermedad, sus síntomas lo hacen con ella, agravándose y aumentando cada vez más hasta que el deterioro cognitivo ocasionado llega a afectar significativamente a las actividades de la vida diaria y finalmente a las necesidades fisiológicas básicas.
+
+La evolución del Alzheimer se puede dividir en tres fases o etapas: Inicial, en la que se observa un deterioro cognitivo leve como puede ser la pérdida paulatina de la memoria episódica. Intermedia, con pérdidas de la memoria reciente asociada a un deterioro mayor. Avanzada, en la que se pierde progresivamente la memoria de los acontecimientos más antiguos, acompañando también un gran deterioro físico.
+
+Los síntomas del Alzheimer son muy diversos, ya que no solo provoca problemas de memoria, sino también alteraciones en el estado de ánimo y la conducta, dificultad de toma de decisiones, desorientación, problemas del lenguaje, dificultad para comer y movilidad reducida, entre otros. Estos síntomas dependen de la fase evolutiva de la enfermedad.
+
+En la actualidad, el Alzheimer es una enfermedad irreversible, no tiene cura. Sin embargo, existen diversos tratamientos que pretenden ralentizar el avance de la enfermedad y/o mejorar la calidad de vida de los pacientes. Podemos dividir estos tratamientos en dos ramas: tratamientos farmacológicos, que hacen uso de medicamentos, y tratamientos no farmacológicos o psicosociales, que no utilizan sustancias químicas. Ambos tratamientos son eficaces y de la combinación de ambos resulta el procedimiento más recomendado para tratar la enfermedad.
+
+Existen una gran variedad de terapias no farmacológicas, algunas de las más utilizadas son el entrenamiento y estimulación cognitiva, ejercicio físico, musicoterapia, etc. Además, en cada una de estas terapias podemos encontrar una enorme cantidad de técnicas, siendo la reminiscencia la más utilizada como terapia de estimulación cognitiva.
+
+La reminiscencia es el acto o proceso de recordar recuerdos del pasado. Esto puede implicar el recuerdo de episodios particulares o genéricos que pueden o no haber sido olvidados previamente, y que son acompañados por la sensación de que estos episodios son relatos verídicos de las experiencias originales. Esta técnica es utilizada para estimular la memoria episódica autobiográfica mediante el encadenamiento de recuerdos, que se agrupan en categorías y se archivan en el tiempo mediante la elaboración de \textit{la historia de vida}.
+
+La historia de vida es una técnica narrativa que se basa en organizar y estructurar recuerdos de una persona para componer una autobiografía. (Según Linde,) una historia de vida debe cumplir dos criterios: primero, debe incluir algunos puntos de evaluación que comuniquen los valores morales de la persona; y segundo, los eventos incluidos en la historia de vida deben tener un significado especial y ser de importancia para ella. Estos eventos deben ser aspectos significativos de la vida pasada de la persona, su presente y su futuro.
+
+Para componer la historia de vida de una persona con Alzheimer se recopilan historias a través de familiares u otras personas cercanas. Posteriormente, se documentan en forma de un libro o cuaderno, incluyendo experiencias y logros junto con fotografías y escritos sobre hechos importantes para la vida de la persona, a través de los cuales se muestra quién es una persona.
+
+Las historias de vida ayudan a las personas con Alzheimer a conectar con su identidad recordando épocas felices. El miedo y la frustración provocados por el olvido de las tareas de la vida cotidiana, nombres y rostros, se mitigan recordando quienes eran a través de estas historias. Les ayuda a ser conscientes de los momentos especiales que han marcado su vida, las personas que han conocido en su infancia o trabajo. También pueden ser utilizados por los cuidadores para saber más de ellos y ayudarles en la reminiscencia de recuerdos.
+
+
+
+\section{Generación de lenguaje natural}
+
+La generación de lenguaje natural (NLG, por sus siglas en inglés) se define como el "subcampo de la inteligencia artificial y lingüística computacional que se ocupa de la construcción de sistemas informáticos que pueden producir textos comprensibles en inglés u otros lenguajes humanos a partir de alguna representación (no) lingüística subyacente de la información" \citep{reiter1997building}. Desde muchos años, el NLG es empleado en numerosos proyectos de distinta naturaleza como la traducción de textos, realización de resúmenes y fusión de documentos, corrección automática de ortografía y gramática, redacción de noticias, informes meteorológicos, campañas de marketing, informes financieros, generación de resúmenes sobre la información de pacientes clínicos... Todos estos sistemas construidos tienen en común la generación de un texto (normalmente de una alta calidad) a partir de muy diferentes fuentes de información. 
+
+\subsection{Tipos de sistemas NLG}
+En los ejemplos de proyectos listados con anterioridad en los que se empleó generación de lenguaje natural para redactar distintos textos, podemos percatarnos de que los datos utilizados como fuente de información son muy dispares, no solo en su contenido sino también en el tipo de dato. Así, si para la traducción de textos se utiliza texto ya existente como entrada, en otros sistemas como en la generación de informes meteorológicos se emplean datos no lingüísticos. Esto lleva a la distinción de dos grandes tipos de sistemas de generación de lenguaje acorde a los datos que reciban como entrada del sistema.
+
+
+\subsubsection{Generación text-to-text (T2T)}
+Estos tipos de sistemas de generación toman textos existentes como entrada y produce un texto nuevo y coherente como salida.
+Cualquier traductor automático es de tipo text-to-text ya que utilizan una entrada textual correspondiente a un escrito en un idioma y genera un texto en otro. La traducción automática es un proceso muy complejo puesto que no solamente hay que tener en cuenta el significado del escrito sino también hace falta interpretar y analizar de manera correcta todos los elementos del texto y saber como influyen unas palabras en otras para generar un texto fluido y coherente. 
+
+\subsubsection{Generación data-to-text (D2T)}
+Permiten la generación de texto como salida a partir de entradas no textuales como bases de datos, simulaciones de sistemas físicos, hojas de cálculo o bases de conocimientos de sistemas expertos.
+
+Un ejemplo de este tipo de sistema sería el Forecast Generator (FoG), sistema que forma parte del Forecaster's Production Assistan (FPA), entorno desarrollado por CoGenTex en 1992 para Environment Canada con el fin ayudar a los meteorólogos a aumentar su productividad al redactar por ellos un informe meteorológico textual en inglés y en francés. En la figura  \ref{fig:inputFoG} se muestra el entorno sobre el que los meteorólogos modifican valores como la presión atmosférica, situación de frentes y otros datos (datos no textuales). Una vez se pulsa sobre 'Generar', el sistema muestra el texto correspondiente al informe (figura \ref{fig:outputFoG}). 
+
+
+\begin{figure}[t]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:inputFoG}%
+			Entrada del sistema FoG}%
+		\includegraphics[width=0.45\textwidth]%
+		{Imagenes/Bitmap/03EstadoDeLaCuestion/inputFoG}%
+	\end{SubFloat}
+	\qquad
+	\begin{SubFloat}
+		{\label{fig:outputFoG}%
+			Salida del sistema FoG}%
+		\includegraphics[width=0.45\textwidth]%
+		{Imagenes/Bitmap/03EstadoDeLaCuestion/outputFoG}%
+	\end{SubFloat}
+\caption{Sistema data-to-text FoG%
+	\label{fig:FoG}}
+\end{figure}
+
+
+
+\subsection{Tareas de NLG}
+El objetivo final de un sistema de generación de lenguaje natural es mapear unos datos de entrada a un texto de salida. \citep{reiter1997building}. El proceso de generación es muy complejo de realizar y especialmente de estudiar,
+es por ello que resulta adecuado descomponer este largo proceso en pequeñas seis tareas o actividades a realizar en la construcción de un sistema.
+
+%\begin{itemize}
+	%\item Determinación del contenido
+	%\item Estructuración del texto
+	%\item Agregación de oraciones
+	%\item Lexicalización
+	%\item Generación de expresiones de referencia
+	%\item Realización lingüística
+%\end{itemize}
+
+\subsubsection{Determinación del contenido}
+La determinación del contenido puede definirse como el proceso de decidir que información debe ser incluida en el texto generado y cual no. Por lo general, la información de la que partimos contendrá más información de la que nos interesa, así debemos decidir que información resulta innecesaria y por tanto tenemos que eliminar para la generación del texto final. También hay que tener en cuenta el público al que está dirigido el texto generado, ya que dependiendo de este podremos incluir cierta información de los datos entrantes o no.
+
+Este proceso de selección de la información correspondiente lleva a cabo la filtración y resumen de esta en un conjunto de \textit{mensajes}. Cada uno de estos mensajes corresponde al significado de una palabra u oración y se le asigna una entidad, concepto o relación dominante.
+
+\subsubsection{Estructuración del texto}
+Definiendo el concepto \textit{texto} como 'unidad de comunicación completa, formada habitualmente por una sucesión ordenada de enunciados que transmiten un mensaje con las siguiente propiedades: adecuación, coherencia y cohesión', podemos advertir que un texto no es un conjunto aleatorio de oraciones, sino que es necesario la existencia de un orden en la presentación del texto final.
+
+Dependiendo de la información que se comunique, este orden puede verse modificado u alterado, es por ello que no hay una estructura fija, sino que hay que adecuarla al tipo de documento.
+
+Una vez realizada la estructuración del texto, se obtiene un plan de discurso que corresponde a una representación estructurada y ordenada de los mensajes obtenidos en la tarea anterior.
+
+\subsubsection{Agregación de oraciones}
+La generación de una oración por cada uno de los mensajes puede resultar en la generación de un texto redundante y excesivamente estructurado. Una tarea en el proceso de construcción de un sistema NLG es la agregación de oraciones que pretender paliar este problema mediante la unión o agregación de contenidos de distintos mensajes en una sola oración. De esta manera los mensajes se combinan para obtener oraciones más largas y complejas. 
+
+\subsubsection{Lexicalización}
+
+\subsubsection{Generación de expresiones de referencia}
+
+\subsubsection{Realización lingüística}
+
