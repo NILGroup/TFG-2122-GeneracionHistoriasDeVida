@@ -8,7 +8,7 @@ La pirámide de población modifica su estructura continuamente debido al progre
 \figura{Vectorial/03EstadoDeLaCuestion/CerebroPersonaAlzheimer}{width=.7\textwidth}{fig:CerebroPersonaAlzheimer}%
 {Reducción del cerebro asociada al Alzheimer, \citet{mattson2004pathways}}
 
-La enfermedad de Alzheimer es un trastorno neurológico caracterizado por cambios degenerativos en diferentes sistemas neurotransmisores que abocan finalmente a la muerte de las células nerviosas del cerebro encargadas del almacenamiento y procesamiento de la información. Las regiones del cerebro involucradas en la memoria y procesos de aprendizaje, asociadas a los lóbulos temporal y frontal, reducen su tamaño como resultado de la degeneración de las sinapsis y la muerte de las neuronas \citep{romano2007enfermedad,mattson2004pathways}. En la figura ~\ref{fig:CerebroPersonaAlzheimer} se puede visualizar esta reducción del cerebro.
+La enfermedad de Alzheimer es un trastorno neurológico caracterizado por cambios degenerativos en diferentes sistemas neurotransmisores que abocan finalmente a la muerte de las células nerviosas del cerebro encargadas del almacenamiento y procesamiento de la información. Las regiones del cerebro involucradas en la memoria y procesos de aprendizaje, asociadas a los lóbulos temporal y frontal, reducen su tamaño como resultado de la degeneración de las sinapsis y la muerte de las neuronas \citep{romano2007enfermedad,mattson2004pathways}. En la figura ~\ref{fig:CerebroPersonaAlzheimer} se puede comprobar de manera visual esta reducción del cerebro.
 
 Es una enfermedad difícil de detectar ya que, por lo general, los síntomas iniciales de la enfermedad suelen atribuirse a un olvido puntual o la vejez, nada más lejos de la realidad. Según avanza la enfermedad, sus síntomas lo hacen con ella, agravándose y aumentando cada vez más hasta que el deterioro cognitivo ocasionado llega a afectar significativamente a las actividades de la vida diaria y finalmente a las necesidades fisiológicas básicas.
 
@@ -33,21 +33,23 @@ Las historias de vida ayudan a las personas con Alzheimer a conectar con su iden
 \section{Generación de lenguaje natural}
 
 La generación de lenguaje natural (NLG, por sus siglas en inglés) se define como el "subcampo de la inteligencia artificial y lingüística computacional que se ocupa de la construcción de sistemas informáticos que pueden producir textos comprensibles en inglés u otros lenguajes humanos a partir de alguna representación no lingüística subyacente de la información"  \citep{reiter1997building}. Si bien esta definición estuvo generalmente aceptada como la más conveniente al hablar de generación de lenguaje natural durante muchos años, \cite{gatt2018survey} puntualiza que es una afirmación que solo engloba una parte de la generación de textos, ya que se refiere 
-únicamente a aquellos sistemas cuya entrada es una 'representación no lingüística [...] de la información" o datos, como veremos más adelante en el apartado \ref{cap:ngltipos}.
+únicamente a aquellos sistemas cuya entrada es una 'representación no lingüística [...] de la información" o datos, como veremos más adelante en el apartado \ref{cap:ngltiposentrada}.
 
  Desde hace muchos años, el NLG es empleado en numerosos proyectos de distinta naturaleza como la traducción de textos, realización de resúmenes y fusión de documentos, corrección automática de ortografía y gramática, redacción de noticias, informes meteorológicos, campañas de marketing, informes financieros, generación de resúmenes sobre la información de pacientes clínicos... Todos estos sistemas construidos tienen en común la generación de un texto (normalmente de una alta calidad) a partir de muy diferentes fuentes de información. 
 
-\subsection{Clasificación de sistemas NGL según la entrada del sistema}\label{cap:ngltipos}
-En los ejemplos de proyectos listados con anterioridad en los que se empleó generación de lenguaje natural para redactar distintos textos, podemos percatarnos de que los datos utilizados como fuente de información son muy dispares, no solo en su contenido sino también en el tipo de dato. Así, si para la traducción de textos se utiliza texto ya existente como entrada, en otros sistemas como en la generación de informes meteorológicos se emplean datos no lingüísticos. De esta manera, se consideran dos posibles enfoques en los sistemas NGL: text-to-text y data-to-text.
+\subsection{Clasificación de sistemas NGL según su entrada}\label{cap:ngltiposentrada}
+En los ejemplos de proyectos listados con anterioridad en los que se empleó generación de lenguaje natural para redactar distintos textos, podemos percatarnos de que los datos utilizados como fuente de información son muy dispares, no solo en su contenido sino también en el tipo de dato. Así, si para la traducción de textos se utiliza texto ya existente como entrada, en otros sistemas como en la generación de informes meteorológicos se emplean datos no lingüísticos. De esta manera, se consideran dos posibles enfoques en los sistemas NGL dependiendo del tipo de entrada: text-to-text y data-to-text.
 
 
 \subsubsection{Generación text-to-text (T2T)}
-Estos tipos de sistemas de generación toman textos existentes como entrada y produce un texto nuevo y coherente como salida. La entrada de estos sistemas puede abarcar desde pequeñas oraciones a extensos textos.
-Existen muchas aplicaciones en los sistemas NLG que utilizan t2t como pueden ser generación de resúmenes, fusión, simplificación de textos, corrección gramatical, ... 
+Estos tipos de sistemas de generación toman textos existentes como entrada y produce un texto nuevo y coherente como salida. La entrada de estos sistemas puede abarcar desde pequeñas oraciones a extensos textos. Existen muchas aplicaciones en los sistemas NLG que utilizan t2t como pueden ser generación de resúmenes, fusión, simplificación de textos, corrección gramatical, entre otros.
+
 Si consideramos un ejemplo concreto, cualquier traductor automático es de tipo text-to-text ya que utilizan una entrada textual correspondiente a un escrito en un idioma y genera un texto en otro. La traducción automática es un proceso muy complejo puesto que no solamente hay que tener en cuenta el significado del escrito sino también hace falta interpretar y analizar de manera correcta todos los elementos del texto y saber como influyen unas palabras en otras para generar un texto fluido y coherente.
 
 \subsubsection{Generación data-to-text (D2T)}
-Estos tipos de sistemas permiten la generación de texto como salida a partir de entradas no textuales. Además, el formato de los datos que puede tomar como entrada son muy diversos. Aunque es muy común encontrar sistemas que parten de datos numéricos como hojas de cálculo, hay que considerar otros orígenes de datos de tipo estructurado tales como bases de datos, simulaciones de sistemas físicos, hojas de cálculo o bases de conocimientos de sistemas expertos. Algunos autores utilizan el término \textit{concepto}, motivo por el que algunos se refieren a este enfoque como generación concept-to-text (c2t). \citep{vicente2015generacion}
+Estos tipos de sistemas permiten la generación de texto como salida a partir de entradas no textuales. Además, el formato de los datos que puede tomar como entrada son muy diversos. Aunque es muy común encontrar sistemas que parten de datos numéricos como hojas de cálculo, hay que considerar otros orígenes de datos de tipo estructurado tales como bases de datos, simulaciones de sistemas físicos, hojas de cálculo o grafos de conocimientos. 
+
+Algunos autores prefieren utilizar  el término \textit{concepto} en lugar de \textit{data}, motivo por el que algunos se refieren a este enfoque como generación concept-to-text (c2t). \citep{vicente2015generacion}
 
 Uno de los ejemplos más visuales que nos permite comprender este tipo de sistema sería el Forecast Generator (FoG), sistema que forma parte del Forecaster's Production Assistan (FPA), entorno desarrollado por CoGenTex en 1992 para Environment Canada con el fin ayudar a los meteorólogos a aumentar su productividad al redactar por ellos un informe meteorológico textual en inglés y en francés. En la figura  \ref{fig:inputFoG} se muestra el entorno sobre el que los meteorólogos modifican valores como la presión atmosférica, situación de frentes y otros datos (datos no textuales). Una vez se pulsa sobre 'Generar', el sistema muestra el texto correspondiente al informe (figura \ref{fig:outputFoG}). 
 
@@ -73,6 +75,10 @@ Uno de los ejemplos más visuales que nos permite comprender este tipo de sistem
 \end{figure}
 
 
+En la figura \ref{fig:data-to-text} explicada con más detalle en \cite{sai2020survey}, se muestran los datos de entrada y de salida de un sistema NLG D2T acercándonos a la generación de lenguaje desde una perspectiva distinta al ejemplo explicado anteriormente. La columna de la izquierda corresponde a la entrada, en este caso a partir de un texto de referencia se obtienen unos datos que se introducen en el sistema, ya sea en forma de grafo u otro tipo de datos semiestructurados como tablas (conjunto de tuplas del tipo [entidad,atributo,valor]). En la columna derecha se muestran diferentes posibles soluciones como salida del sistema. Además, el autor introduce la necesidad de métodos de evaluación de la calidad del texto redactado ya que de las diferentes salidas, solo la tercera opción cubre toda la información de entrada y resulta ser fluida.
+
+\figura{Bitmap/03EstadoDeLaCuestion/data-to-text}{width=.9\textwidth}{fig:data-to-text}%
+{Ejemplo de D2T utilizado por \cite{sai2020survey}}
 
 \section{Arquitectura de un sistema NLG}
 El objetivo final de un sistema de generación de lenguaje natural es mapear unos datos de entrada a un texto de salida. \citep{reiter1997building}. Sin embargo, este proceso aunque pueda parecer sencillo de entender resulta complicado de llevar a cabo. Al principio del desarrollo de sistemas NLG, no había un consenso entre autores a la hora de establecer un proceso en para construir este sistema. Finalmente, \cite{reiter1997building} propusieron una arquitectura asociada a una lista de tareas que se deben recomendablemente realizar a la hora de llevar a cabo dicha construcción. Esta arquitectura surgió de la observación de los diferentes sistemas que se habían llevado a cabo hasta la fecha.  Actualmente, es la solución más extendida y reconocida.
@@ -128,3 +134,46 @@ Con el objetivo de transformar las especificaciones de oraciones en las oracione
 \subsubsection{Realización de la estructura}
 Esta etapa no está considerada por algunos autores como tal aunque aquí se muestra ya que puede ser relevante en ciertos contextos. 
 En algunos documentos, es necesario añadir o modificar algunas líneas del texto para darle una estructura al documento. Es por eso, que si queremos generar un texto en formato html se debe añadir las etiquetas a lo largo del texto generado. Igualmente si el documento final utiliza Latex.
+
+\section{Evaluación de un sistema NLG}
+
+
+
+
+\section{Herramientas y modelos NLG}
+\subsection{SimpleNLG}
+SimpleNLG es una API de Java que proporciona interfaces que ofrecen un control directo sobre la tarea de realización. Define un conjunto de tipos léxicos, correspondientes a las principales categorías gramaticales, así como formas de combinarlos y establecer valores de características. 
+
+Esta orientado a la generación de oraciones gramaticalmente correctas en sistemas data-to-text. Aunque originalmente solo estaba disponible para textos de lengua inglesa, actualmente se encuentra en muchos idiomas, entre ellos el español. La versión española de esta herramienta se llama SimpleNLG-ES y realmente se trata de una adaptación bilingüe de la versión original en inglés.
+
+Esta herramienta se basa la flexibilidad a la hora de generar textos mediante la utilización de manera combinada de sistemas basados en esquemas y otros sistemas más avanzados; robustez, generando salidas (aunque en ocasiones incorrectas) cuando las entradas estén erróneas o incompletas; e independencia entre las operaciones de decisión de morfología y sintácticas.
+
+\subsection{GPT-2}
+GPT-2 es un modelo NLG presentado por OpenAI en el año 2019 basado en redes neuronales, concretamente está construido sobre una arquitectura Transformer, cuya finalidad es construir una distribución de probabilidad en la que para cada palabra posible a generar se le asigna una probabilidad en función del contexto anterior. Se trata de un modelo que ha sido preentrenado con un conjunto de datos correspondiente a las 8 millones de páginas web mejor valoradas en Reddit, lo que resulta en una gran base de conocimiento para generar textos automáticamente de manera muy correcta.
+
+La potencia de este modelo es tal que sus creadores no quisieron en un primer momento publicar la versión completa por miedo de que se pudiera utilizar de manera ilícita. Según fueron pasando los años, se fueron liberando progresivamente diferentes versiones del modelo original ya que comenzaban a surgir otros proyectos con potencias igualmente competitivas. Estas diferentes versiones se diferenciaban en el número de parámetros que admitía la arquitectura, de esta manera se conseguía limitar su funcionamiento. La primera versión contaba con 117 miles de millones de parámetros mientras que la última versión, publicada en 2020, posee 1,5 billones.
+
+GPT-2 únicamente está disponible en inglés aunque puede hacer uso de GoogleTranslate API para generar textos en otros idiomas aunque es importante resaltar que al depender del traductor se puede ver disminuida su calidad.
+
+\subsection{BERT}
+Modelo NLP desarrollado por Google a finales de 2018. Está basado redes neuronales bidireccionales que tratan de predecir las palabras perdidas (enmascaradas) en una oración y determinar si dos oraciones consecutivas son continuación lógica entre sí para determinar si están conectadas por su significado. Aunque originalmente no estaba destinado a la generación de textos, \cite{wang-cho-2019-bert} publicaron un método de utilización de este sistema para conseguir la generación de lenguaje que parece dar muy buenos resultados. De hecho, consiguió mejorar los resultados de la versión publicada en aquellos tiempos por GPT-2. 
+
+Beto es la versión en Español de BERT \citep{CaneteCFP2020} y ha sido entrenado con una gran corpus en dicho idioma. Se trata de una herramienta de código abierto que se encuentra disponible en Github.
+
+
+\subsection{Transformers}
+Una mención especial se da a esta herramienta en python que proporciona una serie de sistemas de propósito general para Natural Language Understading (NLU) y Natural Language Generation (NLG). Ofrece más de 32 modelos preentrenados en más de 100 idiomas, entre los que se encuentra el español. Entre los modelos más utilizados encontramos los mencionados antes GPT-2 y BERT junto con un gran número de variaciones de ellos dependiendo de los datos utilizados para su entrenamiento.
+
+
+\section{Proyectos relacionados}
+
+\subsection{A Conversational Model for the Reminiscence Therapy of Patiens with Early Stage of Alzheimer}
+Este proyecto propuesto por \cite{deconversational} trata de desarrollar e implementar un modelo conversacional que pueda ayudar a los cuidadores y a sus propios pacientes con Alzheimer a realizar un mayor número de terapias de reminiscencia periódicas para así, potenciar los beneficios de estas. Se centra en generar conversaciones personalizadas entre el prototipo del sistema conversacional y el paciente con el fin de recoger información relacionada con sus gustos, historial y estilo de vida. Su arquitectura, como se muestra en la figura \ref{fig:ConversationalModelArchitecture} esta integrada por varios módulos: módulo de Reconocimiento Automático de Voz, Comprensión del Lenguaje Natural, Gestión de Diálogos, Modelo de Diálogos, Generación de Lenguaje Natural y Text-to-Speech.
+
+
+\figura{Bitmap/03EstadoDeLaCuestion/ConversationalModelArchitecture}{width=.8\textwidth}{fig:ConversationalModelArchitecture}%
+{Arquitectura modelo conversacional \citep{deconversational}}
+
+\subsection{User-oriented ontology-based clustering of stored memories}
+Esta investigación realizada por \cite{shi2012user} se centra en el desarrollo de un sistema computarizado llamado Life Story Book (LSB), que facilita el acceso y la recuperación de recuerdos almacenados que se utilizan como base para interacciones positivas entre ancianos y jóvenes, y especialmente entre personas con deterioro cognitivo y miembros de su familia o cuidadores. Para facilitar la gestión de la información y la generación dinámica de contenido, este artículo presenta un modelo semántico de LSB que se basa en el uso de ontologías y algoritmos avanzados para la selección de características y la reducción de dimensiones. Para terminar, propone un algoritmo llamado Onto-SVD que combina la selección de características semánticas y la ontología orientada al usuario con  la utilización de SVD como método de reducción de dimensiones para lograr la identificación de temas basada en la similitud semántica.
+
