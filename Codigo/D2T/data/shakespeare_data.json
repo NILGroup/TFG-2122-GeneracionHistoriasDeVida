@@ -1,0 +1,226 @@
+[
+    {
+        "source": "Shakespeare",
+        "target": "William",
+        "edge": {
+            "relation": "name",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "April 23, 1564",
+        "edge": {
+            "relation": "birthdate",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Stratford-upon-Avon",
+        "edge": {
+            "relation": "birthplace",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Stratford-upon-Avon",
+        "target": "England",
+        "edge": {
+            "relation": "city",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "John",
+        "edge": {
+            "relation": "father's name",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Mary",
+        "edge": {
+            "relation": "mother's name",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "six",
+        "edge": {
+            "relation": "number of siblings",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "older brother",
+        "edge": {
+            "relation": "is",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Anne",
+        "edge": {
+            "relation": "little sister",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Joan",
+        "edge": {
+            "relation": "little sister",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Gilbert",
+        "edge": {
+            "relation": "little brother",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Richard",
+        "edge": {
+            "relation": "little brother",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Edmund",
+        "edge": {
+            "relation": "little brother",
+            "tag": "basic"
+        }
+    },
+    {
+        "source": "John",
+        "target": "leatherworker",
+        "edge": {
+            "relation": "occupation",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "John",
+        "target": "prosperous businessman",
+        "edge": {
+            "relation": "occupation",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "John",
+        "target": "Mary",
+        "edge": {
+            "relation": "married",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "Mary",
+        "target": "Arden",
+        "edge": {
+            "relation": "family name",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "John",
+        "target": "Stratford",
+        "edge": {
+            "relation": "move on",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "John",
+        "target": "in 1569",
+        "edge": {
+            "relation": "move on",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "Stratford",
+        "target": "England",
+        "edge": {
+            "relation": "city",
+            "tag": "family"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Stratford",
+        "edge": {
+            "relation": "citizen",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Stratford's grammar school",
+        "edge": {
+            "relation": "attended at",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Stratford's grammar school",
+        "target": "Stratford",
+        "edge": {
+            "relation": "location",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Stratford's grammar school",
+        "target": "Latin classics",
+        "edge": {
+            "relation": "subject",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Stratford's grammar school",
+        "target": "memorization",
+        "edge": {
+            "relation": "subject",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Stratford's grammar school",
+        "target": "memorization",
+        "edge": {
+            "relation": "writing",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Stratford's grammar school",
+        "target": "acting classic Latin plays",
+        "edge": {
+            "relation": "subject",
+            "tag": "school"
+        }
+    },
+    {
+        "source": "Shakespeare",
+        "target": "Stratford's grammar school",
+        "edge": {
+            "relation": "left at 15 years old",
+            "tag": "school"
+        }
+    }
+]
