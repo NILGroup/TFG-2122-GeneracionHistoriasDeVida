@@ -1,0 +1,88 @@
+\chapter{Análisis del problema y especificación de requisitos}
+\label{cap:analisisYRequisitos}
+
+Evgeny Morazov, en su obra \citep{morozov2015la} define el \textit{solucionismo} como una ``preocupación poco saludable de encontrar soluciones atractivas, monumentales y de mentalidad estrecha a problema por demás complejos, fluidos y polémicos''. Critica que ``todos se apresuran a  celebrar la victoria, pero nadie recuerda qué pretendía conseguir''. Con estas palabras se quiere manifestar la importancia de un buen análisis e investigación. En este capítulo se abordarán.....
+
+
+
+\section{Dificultad de composición de historias de vida}
+%Hablar sobre que es muy dificil por una persona crear una historia de vida
+
+%Hablar de que apenas se han encontrado soluciones tecnológicas que ayuden
+
+\section{Problemas en la generación de lenguaje}
+
+%Alucinaciones
+
+%No se representan todos los datos de entrada
+
+
+Con el avance de los modelos de generación de lenguaje natural, se ha empezado a prestar más atención a las limitaciones y riesgos potenciales de este tipo de sistemas. Los sistemas más modernos y en los que los investigadores fijan principalmente su atención son modelos de \textit{Deep Learning} basados esencialmente en redes neuronales profundas que han sido capaz de mejorar drásticamente la calidad de generación de lenguaje respecto a otros sistemas anteriores. Sin embargo, junto con estas mejoras, debido a las características intrínsecas de estos modelos computacionales, estos modelos son más propensos a fenómenos que conllevan una generación errónea de textos. Por una parte la llamada \textit{degeneración} produce salidas incoherentes o atascada en bucles repetitivos de palabras o expresiones. Otros modelos GLN en algunas ocasiones generan textos de salida sin sentido alguno o con datos para nada respaldados en la información introducida como entrada. Este fenómeno es conocido como \textit{alucinación} y perjudica seriamente la aplicabilidad de los modelos neuronales de generación de lenguaje en casos prácticos donde la precisión de la información es vital.
+
+\subsection{Alucinaciones}
+
+Con \textit{alucinación} nos referimos al fenómeno en el que un modelo, especialmente de tipo neuronal ``\textit{end-to-end}'', produce información de salida que no es fiel a los datos provistos como entrada al sistema. 
+
+%Ejemplos: Caso de imagenes, caso de texto
+Este fenómeno se da en una diversidad de sistemas condicionales de generación de lenguaje. \cite{hallucinations_data2text} en su artículo, \textit{Controlling Hallucinations at Word Level in Data-to-Text Generation} destaca la existencia de alucinaciones en la generación \textit{data-to-text} en un modelo neuronal entrenado a partir de bases de datos como \textit{Totto} \citep{parikh-etal-2020-totto}. La entrada al sistema es una tabla. Una vez generado el texto de salida se puede comprobar que la palabra ``Italian'' a la que denomina \textit{enunciado divergente} no es respaldada por los datos de entrada (figura ~\ref{fig:d2thallucinations}).
+
+Por otro lado, \cite{rohrbach-etal-2018-object} subraya la existencia de alucinaciones en la generación de descripciones de imágenes. Estos tipos de sistemas se componen de dos modelos diferenciados. Por una parte, un modelo de predicción de imagen que trata de extraer los objetos de las misma. Por otra, un modelo de predicción de lenguaje basado en la probabilidad de la siguiente palabra a generar. De esta forma, analizaron las diferencias entre ambos modelos (figura ~\ref{fig:imagehallucinations}). Dado que estos tipo de sistemas se componen de dos modelos, por una parte el modelo de predicción de la imagen y por otra, el modelo de predicción de lenguaje. Analizaron las diferencias de predicción entre ambos modelos y llegaron a la conclusión de que en la mayoría de los casos la descripción generada se basaba principalmente en el modelo de lenguaje con el objetivo de conseguir una descripción más consistente semántica y sintácticamente. En el caso de estudio, la imagen sirve de entrada al sistema y se comprueba la predicción de ambos modelos nombrados anteriormente para la última palabra a generar. Mientras que el modelo de imagen predice palabras como ``bol'', ``brocoli'' o ``zanahoria'', el modelo de lenguaje propone ``tenedor'', ``cuchara'' o ``bol''. Finalmente, la descripción generada utiliza ``tenedor'' para completar la frase aunque no aparece en la imagen produciéndose una alucinación.
+
+
+\begin{figure}[t]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:d2thallucinations}%
+			Alucinaciones en generación DT2}%
+		\includegraphics[width=0.7\textwidth]%
+		{Imagenes/Bitmap/04Analisis/alucinacion_d2t}%
+	\end{SubFloat}
+	\qquad
+	\begin{SubFloat}
+		{\label{fig:imagehallucinations}%
+		 Alucinaciones en generación de descripciones de imágenes}%
+		\includegraphics[width=0.8\textwidth]%
+		{Imagenes/Bitmap/04Analisis/alucinacion_image}%
+	\end{SubFloat}
+	\caption{Alucinaciones en distintos sistemas%
+		\label{fig:hallucinations}}
+\end{figure}
+
+
+%Caso especial medico -> mucha precision y privacidad
+
+%Tipos de alucinaciones: intrinsecas| extrinsecas
+
+\subsection{Tipos de alucinaciones}
+Aunque nos referimos a las alucinaciones de manera general como datos generados erróneamente. Atendiendo a . ......... y por tanto a las consecuencias que puede tener esta generación, \citep{hallucination_survey} distingue dos tipos de alucinaciones.
+
+Con \textit{alucinaciones intrínsecas} (figura ~\ref{fig:inthallucinations}) nos referimos a la generación de textos de salida que contradicen los datos de entrada. Mientras que las \textit{alucinaciones extrínsecas} (figura ~\ref{fig:exthallucinations}) son aquellas que generan una salida que no puede ser verificada a partir de los datos de entrada. Ambos tipos de alucinaciones generan datos no respaldados por la información que constituye los datos de entrada. Sin embargo, este último tipo de alucinaciones no siempre genera una salida errónea ya que no se puede asegurar que los datos generados sean incorrectos.
+
+
+\begin{figure}[t]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:inthallucinations}%
+			Alucinación intrínseca}%
+		\includegraphics[width=0.7\textwidth]%
+		{Imagenes/Bitmap/04Analisis/alucinacion_intrinseca}%
+	\end{SubFloat}
+	\qquad
+	\begin{SubFloat}
+		{\label{fig:exthallucinations}%
+			Alucinación extrínseca}%
+		\includegraphics[width=0.7\textwidth]%
+		{Imagenes/Bitmap/04Analisis/alucinacion_extrinseca}%
+	\end{SubFloat}
+	\caption{Tipos de alucinaciones%
+		\label{fig:hallucinations_types}}
+\end{figure}
+
+%Tipos de alucinaciones: A partir de datos| por los datos de entrenamiento e inferencia
+
+
+
+
+
