@@ -1,2 +1,189 @@
-\chapter{Exploración de soluciones y prototipos}
-\label{cap:desarollo}
+\chapter{Modelos de lenguaje para la generación de lenguaje}
+\label{cap:ML_nlg}
+
+En este capítulo se realizará una aproximación a  diferentes modelos de lenguaje basados en redes neuronales para la generación de texto. La motivación de este capítulo reside en la necesidad de comprender el funcionamiento de lo que podría ser considerado el núcleo de un sistema de generación: el modelo de lenguaje.
+El cometido de este componente es la generación, a partir de una entrada dada, de una salida determinada acorde al propósito que se pretende conseguir con la construcción del sistema. 
+
+Se realizará un acercamiento a los modelos de lenguaje más empleados en la actualidad: GPT-2, BERT y T5. La selección de estos tres modelos no es una decisión arbitraria sino que se escogieron aquellos que resultan ligeramente distintos... %TODO
+
+\section{GPT-2 (\textit{Generative Pretrained Transformer})}
+Como se expuso en la sección~\ref{sec:transformers}, GPT-2 (\textit{Generative Pretrained Transformer}) es un modelo de generación de lenguaje que sigue una arquitectura de tipo \textit{Transformer}. Creado por OpenAI en 2019, desde el primer momento fue considerado un gran éxito en el campo del Procesamiento de Lenguaje debido a sus más de 1.5 billones (americanos) de parámetros.
+
+\paragraph{Arquitectura}\hfill
+
+
+La arquitectura de GPT-2 es muy similar a la del modelo tranformer. Este modelo estaba formado por un \textit{encoder} y un \textit{decoder}. Esta arquitectura era apropiada para abordar determinadas tareas muy específicas de generación de lenguaje como era la traducción automática. Sin embargo, GPT-2 desecha esta arquitectura fija utilizando exclusivamente una pila de decodificadores del modelo transformer. El número de decodificadores apilados en esta pila varía con el tamaño de GPT-2 utilizado. En el caso de \textit{GPT-2 Small}, se utilizan únicamente doce \textit{decoders}, mientras que el modelo de mayor tamaño, \textit{GPT-2 Extra Large} ocupa hasta cuarenta y ocho \textit{decoders}. Estos datos se pueden contemplar en más profundidad en la figura ~\ref{fig:gpt2size}.
+
+
+
+\figura{Bitmap/05Prototipos/gpt-2_size}{width=1\textwidth}{fig:gpt2size}%
+{Distintos tamaños de GPT-2 y número de decodificadores que emplean}
+
+
+Otra idea importante es la característica unidireccionalidad de este modelo. Que un modelo de lenguaje sea unidireccional quiere decir que se centra únicamente en la secuencia anterior a la última palabra sin tener en cuenta ninguna secuencia posterior. Una vez generada la nueva palabra, esta se añade a la secuencia de entrada. Esta nueva secuencia se convierte en la nueva entrada al modelo en el siguiente paso. Esta idea se denomina \textit{auto-regresión} o \textit{auto-regression}. De esta manera, se parte de una entrada (podría ser el \textit{token} de entrada \textit{<s>}) y obtiene la salida a través de la pila de decodificadores produciéndose un vector a lo largo del camino. Este vector se compara con el vocabulario del modelo (en el caso de GPT-2, este vocabulario está formado por 50000 palabras) y se selecciona el \textit{token} de mayor probabilidad. En el siguiente instante de tiempo, se añade este \textit{token} a la secuencia de entrada y se genera, de igual forma que para el primer \textit{token}, la salida a través de las capas de decodificadores. Al contrario que los modelos bidireccionales, en este segundo instante de tiempo no se va a reinterpretar el primer \textit{token}, ya que solo se genera hacia delante.
+
+\paragraph{Representación de la entrada}\hfill
+
+
+En el apartado anterior se habló del concepto \textit{token}. La tokenización, en el campo del Procesamiento de Lenguaje Natual, se refiere al proceso de transformación de una secuencia de palabras o símbolos a \textit{tokens} para que la máquina pueda comprender el lenguaje humano y contexto detrás de él. El proceso de tokenización en GPT-2, se basa en la obtención de subpalabras mediante un algoritmo de codificación de pares de bytes (\textit{Byte Pair Encoding} o \textit{BPE}).
+
+El algoritmo BPE \citep{gage1994new} es un algoritmo de tokenización basado en subpalabras. Su objetivo principal es la resolución de los problemas de otros tipos de tecnologías basadas en palabras o en caracteres mediante un enfoque intermedio. De manera teórica, BPE es una forma simple de comprensión de datos en el que el par más común de bytes de datos consecutivos se reemplaza con un byte que no aparece en esos datos. Esta idea garantiza que las palabras más comunes se representen en el vocabulario como un solo \textit{token}, mientras que las palabras menos habituales se dividen en dos o más tokens de subpalabras.
+
+\paragraph{Pre-entrenamiento}\hfill
+
+
+El entrenamiento de GPT-2 se realizó sobre un gran corpus de texto en inglés conocido como \textit{WebText}, siguiendo un entrenamiento denominado auto-supervisado (\textit{self-supervised}). Este proceso se realiza con los textos sin procesar, es decir, sin que los humanos etiqueten los datos de entrada de ninguna manera. La ventaja reside en que debido a la gran cantidad de datos que contenía el corpus, este procedimiento de etiquetado no se podría llevar a cabo. Concretamente, este modelo se entrena para predecir la siguiente palabra en una oración dada como entrada. 
+
+Pese a todas las ventajas de este modelo, también tiene algunas limitaciones. Una de ellas, producida por el conjunto de datos seleccionado y por el propio entrenamiento aplicado, es la existencias de sesgos en la generación. Ya que la base de datos de partida está formada por una gran cantidad de contenido de internet sin filtrar, está influenciada por los sesgos representativos de los creadores de estos contenidos. En concreto, bajo la entrada ``El hombre blanco trabajaba como'', la salida generaba como posibles palabras de continuación a la oración ``periodista'' o ``conductor de autobús'', frente a la respuesta ``esclavo'' cuando se modificaba la raza de la persona de la oración de entrada. 
+
+Para entrenar el modelo se creó una base de datos, llamada \textit{WebText}, formada a partir de la extracción de todas las páginas web de los enlaces salientes en Reddit que recibieron una determinada puntuación mínima, para garantizar la calidad y significancia del enlace. Las páginas de Wikipedia relacionadas con estos enlaces se eliminaron. Es por esto que GPT-2 no está entrenado bajo ningún texto de Wikipedia. El conjunto de datos resultante es un enorme corpus de 40GB de textos preparado para el entrenamiento de este modelo, GPT-2 \citep{radford2019language}.
+
+
+\paragraph{Prueba de funcionamiento}\hfill
+
+Para comprender el proceso de generación de texto con este modelo se realizaron una serie de pruebas de funcionamiento básico. Para la obtención del modelo y del tokenizador se utilizó la API \textit{Transformers} de la herramienta \textit{Hugging Face} que proporciona Python para la descarga y entrenamiento de modelos preentrenados. El modelo preentrenado utilizado es \textit{GPT2HeadModel}, una configuración del modelo GPT2 preparado para modelado de lenguaje. Por otra parte, el \textit{tokenizer} empleado es \textit{GPT2Tokenizer} basado en el algoritmo \textit{Byte-Pair-Encoding} visto anteriormente. Este tokenizador tiene en cuenta los espacios y por tanto asignará diferentes \textit{tokens} teniendo en cuenta también dicho carácter. Se puntualiza que con el parámetro $add\_prefix\_space=True$ 
+se puede sortear este comportamiento aunque no es lo recomendable ya que el modelo no está preentrenado de esa manera y podría derivar en una disminución del rendimiento. El resultado de aplicar a un texto inicial el \textit{GPT2Tokenizer} se puede comprobar en el código \ref{lst:tokenizer-gpt2}.
+ 
+\begin{lstlisting}[language=Python, caption=Ejemplo de uso de \textit{GPT2Tokenizer}, label={lst:tokenizer-gpt2}]
+	tokenizer('I love Transformers', add_prefix_space=False)
+>> {'input_ids': [40, 1842, 39185], 'attention_mask': [1, 1, 1]}
+
+	tokenizer(' I love you', add_prefix_space=False)
+>> {'input_ids': [314, 1842, 345], 'attention_mask': [1, 1, 1]}
+\end{lstlisting} 
+
+El resultado de aplicar la tokenización de \textit{GPT2Tokenizer} sobre una secuencia de palabras resulta en una lista denominada \textit{inputs\_ids} que asigna un número identificador a cada uno de los \textit{tokens} encontrados en dicha secuencia. En el ejemplo \ref{lst:enc_dec-gpt2} se puede comprobar el funcionamiento del proceso de codificar y decodificar. Dada una secuencia de entrada, en este caso \textit{'What is love?'}, se la pasamos al tokenizador y la codificamos. Este procedimiento devuelve los \textit{input\_its} en forma de objeto \textit{tensor} y a continuación decodificamos. La secuencia original y la resultante después de aplicar ambos proceso son similares.
+
+\begin{lstlisting}[language=Python, caption= Encode y Decode, label={lst:enc_dec-gpt2}]
+>> original seq : What is love?
+>> input_ids    : tensor([[2061,  318, 1842,   30]])
+>> decoded seq  : What is love?
+
+
+\end{lstlisting} 
+
+A continuación se describe el proceso completo de generación de texto con GPT2 haciendo uso del tokenizador y del modelo. Para comenzar se codifica la secuencia de entrada al igual que se realizó en el ejemplo anterior. A continuación se crea el modelo a partir del \textit{GPT2LMHeadModel} y se genera la salida con el método \textit{generate} (para generar el resultado final se emplearon los parámetros $max\_lenght=50$ para establecer una longitud máxima, $num\_beans=5$ y $no\_repeat\_ngram\_size=2$). Para finalizar, se decodifica la salida del generador, ya que el resultado es un objeto \textit{tensor} similar al producido en la codificación. En el ejemplo~\ref{lst:model-gpt2} mostrado, se genera la continuación a la secuencia de entrada dada. El resultado es un texto coherente y cohesionado.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de uso de \textit{GPT2LMHeadModel}, label={lst:model-gpt2}]
+>> What is love?
+	Love is a word that has been around for a long time. It's a way of saying "I love you, but I don't know what it means to love someone else."
+
+
+\end{lstlisting} 
+
+
+
+\section{BERT (\textit{Bidirectional Encoder Rrepresentarions from Transformers})}
+BERT (\textit{Bidirectional Encoder Rrepresentarions from Transformers}) o Representación de Codificador Bidireccional de Transformadores \citep{Devlin2019BERTPO} es otro modelo de la familia transformers. Al igual que GPT-2, se caracteriza por el preentrenamiento bajo una gran base de datos. En el caso del modelo BERT original se utilizan dos corpus de lengua inglesa: \textit{BookCorpus} y \textit{Wikipedia}. Este modelo fue desarrollado por Google en el año 2018 y desde su publicación logró un rendimiento asombroso para diferentes de tareas de Procesamiento de Lenguaje Natural.
+
+\paragraph{Arquitectura}\hfill
+
+La innovación técnica clave que introduce BERT es aplicar una representación de lenguaje bidireccional. Esto significa que no solo se centra en la secuencia anterior o posterior a una palabra dada (procesamiento secuencial de los datos de izquierda a derecha o de derecha a izquierda que puede llegar a limitar el aprendizaje del contexto de una palabra), como ocurría en modelos unidirecionales como GPT-2, sino que también tiene en cuenta la secuencia contraria a este procesamiento (izquierda y derecha de la palabra). El objetivo de aplicar esta técnica es obtener un resultado con un sentido más profundo del contexto, ya que el modelo aprende el contexto de una palabra en función de su entorno por completo  y un mejor flujo del lenguaje que los modelos de lenguaje unidireccionales.
+
+Al igual que GPT2, rompe con la arquitectura de encoder-decoder manteniendo únicamente una pila de codificadores de transformadores entrenados. Esta pila está formada por distinto número de capas de codificadores dependiendo de la versión de modelo utilizada: doce \textit{encoders} en el caso del modelo BERT Base o veinticuatro \textit{encoders} en el caso del modelo BERT Large. 
+
+
+\paragraph{Datos de entrada}\hfill
+
+%https://towardsdatascience.com/wordpiece-subword-based-tokenization-algorithm-1fbd14394ed7
+Al igual que GPT-2, BERT necesita tokenizar los datos de entrada para poder manejarlos internamente. El tokenizador utilizado por este modelo de lenguaje es \textit{WordPiece} \citep{wordpiece} basado en subpalabras. Este algoritmo posee dos implementaciones: un enfoque ascendente de abajo hacia arriba y un enfoque descendente de arriba hacia abajo. El modelo BERT original utiliza el enfoque ascendente.
+
+Este algoritmo no difiere demasiado del algoritmo BPE descrito anteriormente, ya que se trata de una versión modificada de dicho algoritmo. Sin embargo, \textit{WordPiece} trata de solucionar un problema común del BPE, limitado por la confusión de elección de un \textit{token} en el caso de las instancias que tiene más de una manera de ser codificadas. Debido a este problema, una misma entrada podría representarse mediante diferentes codificaciones pudiendo afectar a la precisión de las representaciones aprendidas.
+
+
+\paragraph{Pre-entrenamiento}\hfill
+
+
+BERT es un modelo preentrenado bajo dos grandes corpus de lengua inglesa con datos sin etiquetar. Por una parte, \textit{BookCorpus} \citep{Zhu_2015_ICCV} disponible en \textit{Hugging Face} \footnote{https://huggingface.co/datasets/bookcorpus} es un conocido corpus de texto a gran escala destinado especialmente al aprendizaje no supervisado  de codificadores y decodificadores. \textit{BookCorpus}, está compuesto por 11038 libros (con alrededor de 74MB de oraciones y 1GB de palabras) de 16 diferentes subgéneros literarios. Otro de los corpus utilizados en el preentrenamiento del modelo es la Wikipedia inglesa, formada por textos de diversos temas y revisados por la comunidad de Wikipedia, lo que asegura una buena calidad y seguridad al entrenamiento del sistema.
+
+
+Este modelo es capaz de realizar diversas tareas de procesamiento de lenguaje. Entre ellas destaca el Modelado de Lenguaje Enmascarado o MLM por sus siglas en inglés. Esta tarea de preentrenamiento del modelo se sustenta en un entranamiento con una versión corrupta de los datos, generalmente enmascarando algunos tokens al azar y dejando que el modelo prediga el texto original. Este proceso garantiza la bidireccionalidad del modelo. Para llevar a cabo este procedimiento, antes de introducir una secuencia de palabras al modelo BERT, se reemplazan aproximadamente el 15\% de las palabras de dicha secuencia por el \textit{token} [MASK]. Seguidamente, el modelo trata de predecir el valor original de las palabras enmascaradas por el \textit{token} en función del contexto, proporcionado por el resto de palabras no enmascaradas de la secuencia. Para poder realizar la predicción de la palabra enmascarada, se modifica ligeramente la arquitectura añadiendo una capa de clasificación a la salida del codificador. Después, se multiplican los vectores de salida por la matriz de incrustación, para transformar dicho vector en una matriz de la dimensión del vocabulario. Para terminar, se calcula la probabilidad de cada palabra en el vocabulario con la función \textit{softmax}. Esta nueva arquitectura se muestra en la figura ~\ref{fig:bert-MLM} de manera más detallada.
+
+\figura{Bitmap/05Prototipos/bert-MLM}{width=1\textwidth}{fig:bert-MLM}%
+{Arquitectura BERT para MLM}
+
+
+Otro de los procesos llevados a cabo durante el entrenamiento es la Prediccion de la Siguiente Palabra o NSP por sus siglas en inglés. Durante el proceso de preentrenamiento, el modelo BERT recibe pares de oraciones como entrada y aprende a predecir si la segunda oración corresponde a la siguiente oración en el documento original. Aproximadamente, el 50\% de estos pares de oraciones de entradas corresponden a dos pares seguidos de secuencias en el corpus original, mientras que el 50\% no son secuencias contiguas, sino que se realiza una elección aleatoria de cualquier otra oración del texto. Para que pueda realizar este procedimiento, se inserta el \textit{token} [CLS] al comienzo de la primera oración y el \textit{token} [SEP] para separar los pares de oraciones.
+%Más cosas : Se agrega una incrustación posicional a cada token para indicar su posición en la secuencia.  https://towardsdatascience.com/bert-explained-state-of-the-art-language-model-for-nlp-f8b21a9b6270
+Para predecir si la segunda oración está realmente contigua en el texto original a la primera, es necesario que toda la secuencia de entrada pase por el codificador del modelo. La salida del modelo del primer token [CLS] es un vector de dimensiones 2 x 1 y utilizando una capa de clasificación simple que se añade a la arquitectura, se calcula la probabilidad de la contigüidad de oraciones con la función \textit{softmax}.
+
+Ambos procedimientos descritos se utilizan en conjunto durante el preentrenamiento del modelo con el objetivo de minimizar la función de pérdida combinada de ambas estrategias.
+
+La entrada final al modelo se denomina \textit{input embeddings}. Este vector de entradas se constituye con la suma de los \textit{token embeddings}, \textit{segment embeddings} y \textit{position embeddings}. El primero de ellos se refiere a los \textit{tokens} resultantes de aplicar el tokenizador con los \textit{tokens} especiales [CLS] y [SEP]. El segundo \textit{embedding} indica la separación de oraciones. Por último, el \textit{position embedding} señala la posición de cada una de las palabras en la secuencia de entrada. Este concepto se muestra en la figura ~\ref{fig:bert-embeddings}.
+
+
+\figura{Bitmap/05Prototipos/embeddings}{width=1\textwidth}{fig:bert-embeddings}%
+{Constitución de la entrada del modelo BERT}
+
+
+
+\paragraph{Prueba de funcionamiento}\hfill
+
+A continuación vamos a comprobar el funcionamiento del modelo BERT. Concretamente, se evaluará el proceso de predicción de la palabra más probable dada una secuencia con alguna palabra enmascarada con el \textit{token} [MASK]. El primer ejemplo (código ~\ref{lst:tokenizer-bert}), muestra el resultado de tokenizar el texto de entrada. Para realizar este proceso se utiliza el tokenizador \textit{BertTokenizer} que internamente implementa el algoritmo \textit{WordPiece} descrito en uno de los apartados anteriores. Se puede observar que la palabra ``thunderous'' no se encuentra en el vocabulario del tokenizador y por tanto la descompone en dos \textit{tokens}: ``thunder'' y ``\#\#ous''. Para indicar que estos \textit{tokens} no pertenecen a palabras separadas utiliza la doble almohadilla (\textit{\#\#}) como prefijo en el segundo \textit{token}.
+
+\begin{lstlisting}[language=Python, caption=Resultado de aplicar \textit{BertTokenizer} a un texto de entrada, label={lst:tokenizer-bert}]
+	sequence = "The thunderous roar of the jet overhead confirmed 
+	her worst fears"
+
+>> ['The', 'thunder', '##ous', 'roar', 'of', 'the', 'jet', 
+	'overhead', 'confirmed', 'her', 'worst', 'fears']
+\end{lstlisting} 
+
+A continuación, se muestra el proceso de predicción de una palabra enmascarada en una secuencia utilizada como entrada al modelo (código ~\ref{lst:model-bert}). El modelo utilizado es \textit{BertForMaskeLM}, una versión especial de BERT para la realización exclusiva de esta tarea. El proceso seguido para la predicción es muy sencillo: primero se obtienen los \textit{input\_ids} de los \textit{tokens} que conforman la entrada y se codifican; a continuación se obtiene el índice de las palabras enmascaradas (en el ejemplo mostrado hay un solo \textit{token} [MASK]); una vez obtenida la salida del modelo dada la secuencia de entrada, se aplica la función \textit{softmask} y finalmente se filtran las cinco palabras con mayor probabilidad. El resultado es una oración coherente mediante la generación de una palabra acorde con su entorno.
+
+\begin{lstlisting}[language=Python, caption=Ejemplo de predicción de una palabra enmascarada en una secuencia, label={lst:model-bert}]
+	text = "Every Monday, Mary goes to the " + tokenizer.mask_token + " to relax."
+
+>> Every Monday, Mary goes to the beach to relax.
+	Every Monday, Mary goes to the library to relax.
+	Every Monday, Mary goes to the bathroom to relax.
+	Every Monday, Mary goes to the lake to relax.
+	Every Monday, Mary goes to the gym to relax.
+\end{lstlisting} 
+
+
+\section{T5 (\textit{Text-to-Text Transfer Transformer})}
+El modelo T5, introducido por \citep{2020t5}, también es conocido como \textit{Text-to-Text Transfer Transformer} dado que se trata de un modelo basado en la arquitectura Transformer. Con 11 billones (americanos) de parámetros, se trata de uno de los modelos actuales de mayor tamaño. Su innovación frente a otros avances en la generación de lenguaje reside en la construcción de un solo modelo capaz de realizar diversas tares mediante la unión de varios sub-modelos. Cualquiera de las tareas para las que se concibe este sistema, ya sea traducción de texto, respuesta a preguntas, clasificación de texto o análisis de sentimientos, se proyecta alimentando al modelo con una entrada textual y entrenándolo para que produzca un texto de destino. 
+
+
+
+\paragraph{Arquitectura}\hfill
+
+La arquitectura del modelo T5 sigue el enfoque tradicional del modelo Transfomer expuesto en la sección~\ref{sec:transformers}. Abandona la arquitectura que seguían sus predecesores GPT-2 y BERT, basada en bloques de decodificadores y codificadores, respectivamente, para recuperar el modelo \textit{encoder-decoder}.
+
+Al igual que BERT, el primer paso para el entrenamiento es la conversión de nuestra secuencia de entrada a una secuencia de tokens para posteriormente ser mapeada a la \textit{sequence embedding} descrita en el apartado anterior. Una vez constituida la entrada final al modelo, se le puede dar paso al primer módulo, el codificador. 
+
+El \textit{encoder} se constituye como una pila de bloques, en que el cada uno consta de dos componentes: una capa de autoatención (\textit{self-attention}) seguida de una red de retroalimentación (\textit{Feed-Forward Network}). Antes de cada uno de estos componentes se normalizan los datos empleando una versión simplificada de la capa de normalización original del modelo Transformer. Después de aplicar el proceso de normalización, una conexión de salto residual se agrega a la entrada de cada componente a su salida.
+
+El otro módulo es el decodificador, cuya estructura es similar al codificador descrito anteriormente. La única diferencia notoria entre ambos componentes es la adición de un mecanismo de atención estándar después de cada capa de autoatención que atiende a la salida del codificador. El mecanismo de autoatención en el decodificador utiliza una forma de autoatención autorregresiva o causal, que limita al modelo a que únicamente preste atención a las salidas de instantes de tiempo pasados. La salida del bloque decodificador final alimenta a una capa formada por la función \textit{softmax}.
+
+
+
+\paragraph{Pre-entrenamiento}\hfill
+
+Para entrenar el modelo T5 se creó una enorme corpus de datos llamado \textit{``Colossal Clean Crawled Corpus''} (\textit{C4}). Este conjunto de datos contiene 750GB de información en lengua inglesa extraída mediante \textit{web scrappping} de la web. Ya que el corpus original son 20TB de datos no revisados y podían incluir lenguaje ofensivo, código fuente, textos en otros idiomas... en resumen, texto que no interesa para el entrenamiento, se siguieron una serie de pautas muy precisas para eliminar toda esta información, resultando un corpus limpio libre de todo dato no necesario.
+
+Para realizar el preentrenamiento, se tiene en cuenta cada una de las tareas para las que se va a crear el modelo. Ya que se soporta en un enfoque de tipo \textit{Text-to-Text}, la entrada para cada una de las acciones a realizar será un texto, al igual que su salida. Para realizar tareas de traducción, sus autores precisan que la entrada al modelo fuese ``\textit{translate English to German: That is
+good.}'' en el caso de querer traducir del idioma inglés al alemán ``\textit{That is
+good}''. La salida del sistema sería ``\textit{Das ist gut.}''. En el caso de generación de resúmenes, la entrada estaría constituida por el texto a resumir seguida del texto ``\textit{TL;DR}'' (abreviación de \textit{too long, didn't read}). De esta manera se genera un resumen de un texto via decodificación autorregresiva. 
+
+Al igual que BERT, utiliza una entrada tokenizada como entrada al modelo. En el caso de T5, modifica el algoritmo de tokenización que utiliza el anterior modelo, basándose ahora en el algoritmo \textit{SentencePiece} que opera sobre regulación de subpalabras. Este algoritmo de tokenización, implementado en C++ es, increíblemente rápido, lo que resulta en un entrenamiento y generación muchísimo más veloz en comparación con los tokenizadores utilizados en GPT-2 (BPE) o BERT (WordPiece). Otra de las ventajas de este tokenizador es que se utiliza directamente sobre los datos sin la necesidad de almacenar los datos tokenizados en discos, por lo que utiliza menos memoria en el proceso. Por otra parte, es agnóstico respecto a los espacios en blanco, confiriendo a idiomas que en ocasiones no hacen uso de ellos, como el chino o japones, la misma facilidad de tokenización que a cualquier otro lenguaje. En general, se basa en la idea de que la codificación de pares de bytes no es óptima para el entrenamiento previo del modelo de lenguaje \citep{bostrom-durrett-2020-byte}.
+
+%https://yukyunglee-github-io.translate.goog/Transformer-to-T5-4/?_x_tr_sl=auto&_x_tr_tl=es&_x_tr_hl=es&_x_tr_pto=wapp
+Para pre-entrenar el modelo se adoptó el método de enmascaramiento MLM. Sin embargo, la diferencia con el método existente utilizado en BERT reside en que los \textit{tokens} consecutivos se reemplazan con una máscara sin enmascarar un \textit{token} aleatorio. Específicamente, si antes a cada uno de las palabras enmascarados se les sustituía con el \textit{token} [MASK], este método los sustituye por <X>, <Y>, <Z>... y así sucesivamente hasta enmascarar todas las palabras introducidas. Estos \textit{tokens} se denominan \textit{tokens} centinela y tienen un tratamiento especial.
+
+
+%\section{Ajustando modelos de lenguaje}
+
+%\subsection{Wiki2Bio}
+
+
+
+%WIKIBIO: Conjunto de datos para generar notas biográficas basadas en el cuadro de información de Wiipedia.
+%Con respecto a las alucinaciones. [Hallucination from Data]. No se quien encontró que cuando se construyo esta dataset, los autores tomaron el cuadro de información de Wikipedia como fuente y la primera oración de la página de Wikipeia como referencia de verdad básica de destino. Sin embargo, la primera oración del artículo de Wikipedia no es necesarioamente equivalente al cuadro de información en términos de la información que contiene. De hecho, no se quien, señala que el 62 por ciento de las primeras frases de WIKIBIO tienen información adicional no indiciada en el infobox correspondiente. Este desajuste entre el origen y destino en los conjuntos de datos puede hacer que los modelos entrenados alucinen.
+
+
+%\subsection{WebNLG}
+
+
+%\section{Sistema final}

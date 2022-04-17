@@ -1,0 +1,90 @@
+\chapter{Modelos de lenguaje aplicados a la generación a partir de datos biográficos}
+\label{cap:ML_biografica}
+
+En este capítulo se presentan soluciones para cubrir los requisitos de generación del sistema. 
+Por una parte, se trata la generación de textos que representen textualmente información bibliográfica de una persona.  
+Otra de las necesidades a cubrir es la generación textual a partir de unos datos precisados como entrada al sistema. 
+
+Mediante la utilización de los modelos de lenguaje en la manera exacta en que han sido presentados en el capítulo \ref{cap:ML_nlg}, ninguno de estos dos requisitos podría alcanzarse. Esto se debe a que no encontramos mecanismos para controlar los datos que se están generando durante el proceso de generación, sino que este control reside enteramente en el modelo de lenguaje basándose en la probabilidad de la siguiente palabra a generar según ha sido entrenado. 
+Es por ello que se pretende la construcción de adaptaciones de dichos modelos de lenguaje para satisfacer las necesidades de generación anteriormente expuestas.
+
+
+\section{Ajuste de los modelos de lenguaje}
+La aparición de los modelos \textit{transformers} como evolución de los modelos basados en redes neuronales recurrentes para la generación de lenguaje natural, supuso un cambio de paradigma en el modelado de lenguaje debido a la introducción de mecanismos de preentrenaminto y ajuste o \textit{finetune}. Después de un preentrenamiento sin supervisión del modelo bajo un gran conjunto de datos, dicho modelo puede ajustarse de manera mucho más rápida acorde a la tarea que se pretende lograr, utilizando para ello un conjunto de datos mucho más reducido  y realizándose esta vez un entrenamiento supervisado. 
+
+Dependiendo de la tarea que se pretenda conseguir con el ajuste del modelo, se debe realizar una correcta elección del conjunto de datos sobre el que se va a entrenar el modelo. La elección de la base de datos no es trivial, sino que obedece a las necesidades establecidas: en nuestro caso, generación de texto biográfico a partir de unos datos especificados como entrada. 
+
+En los apartados siguientes, se mostrarán los resultados del ajuste realizado a los modelos transformers GPT-2, BERT Y T5 bajo diferentes conjuntos de datos. Son muchas las bases de datos existentes para realizar la tarea de ajuste de un modelo. Algunos corpus como \textit{News Aggregator}\footnote{Disponible en Kaggle https://www.kaggle.com/datasets/uciml/news-aggregator-dataset} pueden ser utilizados para la creación de noticias. Otra tarea puede ser la generación de recetas, utilizando para ello \textit{datasets} como \textit{recipe-box}\footnote{Disponible en github https://github.com/rtlee9/recipe-box}.
+Así, se realizó una búsqueda de \textit{datasets} apropiadas a las características necesarias para construir el sistema propuesto en este trabajo. Entre las posibles bases de datos disponibles se encontró \textit{Wiki2bio}, una \textit{dataset} que contiene datos extraídos directamente de Wikipedia; \textit{KELM} .... y \textit{WebNLG}.
+Finalmente se extraerá las ventajas y desventajas de cada uno de los sistemas propuestos y se decidirá cual de las combinaciones resulta más acertada.
+
+
+\section{Wiki2bio}
+
+Wiki2bio es un conjunto de datos propuesto por \citep{lebret-etal-2016-neural}. Fue creado debido a la necesidad de existencia de una gran base de datos que permitiera componer notas biográficas. Hasta entonces, las bases de datos con información bibliográfica eran demasiado pequeñas como para entrenar un modelo de red neuronal, por lo que se ideó la construcción de un conjunto de una orden de magnitud superior. Compuesto por más de 700.000 ejemplos y un vocabulario de 400.000 palabras, extrajeron todos estos datos mapeando los datos contenidos en las tablas de información de Wikipedia con los textos descriptivos escritos en lenguaje natural.
+
+Para lograr un sistema de generación bibliográfica con esta \textit{dataset}, se escogió el modelo de lenguaje GPT-2. 
+
+El proceso de ajuste de un modelo de lenguaje consta de una serie de pasos. En primer lugar, se comienza con la descarga de la base de datos, en nuestro caso wiki2bio, disponible a través de la herramienta HuggingFace \footnote{Disponible en https://huggingface.co/datasets/wiki\_bio}. Una vez descargada correctamente, se debe realizar una limpieza de los datos ya que en numerosas ocasiones algunos caracteres como paréntesis o corchetes están codificados como símbolos. 
+
+Un ejemplo cualquiera de la base de datos es representado en la figura~\ref{fig:ex_wiki2bio}. Como datos de entrada al modelo se emplea la información \textit{input\_text} o ``texto de entrada'', concretamente los datos de la tabla \textit{table}. Como se puede comprobar en la figura, los datos contenidos en esta tabla establecen asignaciones a características del personaje como son la nacionalidad, fecha de nacimiento o trabajo a unos valores. También se emplearían como datos de entrada el \textit{target\_text} o ``texto de destino'' que representa en lenguaje natural la información contenida en la tabla anteriormente mencionada.
+
+
+\figura{Bitmap/06MLBio/wiki2bio}{width=1\textwidth}{fig:ex_wiki2bio}%
+{Ejemplo de entrada de wiki2bio}
+
+
+En segundo lugar, se continua con el proceso de ajuste escogiendo la versión adecuada del modelo de lenguaje seleccionado. En este caso, ya que se trata de una prueba se empleará la versión menos pesada (\textit{gpt2}) del modelo. Una vez seleccionada la versión se establecen una serie de parámetros que utilizará el modelo para entrenarse sobre la base de datos. Estos parámetros escogidos corresponden al número de capas ocultas, número de \textit{epochs}, tasa de aprendizaje o \textit{learning rate}, entre otros.
+
+
+A continuación, se creó una clase denominada \textit{MyDataset} que agrupa una serie de funcionalidades básicas para el manejo del conjunto de datos utilizado. Esta clase hereda de la clase abstracta \textit{Dataset} de la librería \textit{torch} utilizada para representar grandes corpus. Según se define en su documentación, las clases que hereden de \textit{Dataset} deben sobreescribir los métodos \textit{\_\_getitem\_\_(index)} que devuelve el elemento en la posición \textit{index} del conjunto de datos y \textit{\_\_len\_\_()} que retorna el tamaño de dicho conjunto. También se incluyeron métodos de conversión de la información procedente de \textit{wiki2bio} en forma de diccionario con pares clave-valor a un formato comprensible por el modelo de lenguaje, en forma de texto.
+
+Una vez realizados estos procedimiento básicos de gestión, se puede continuar el proceso de ajuste escogiendo un tokenizador adecuado. En este caso se utilizó \textit{GPT2-Tokenizer} descrito anteriormente.
+
+Para finalizar, se establece el modelo en modo de entrenamiento y se le asigna como datos de entrenamiento la porción de datos de \textit{MyDataset} establecida para ello. En nuestro caso seleccionamos 10000 ejemplo de la base de datos original, de los cuales 8000 se utilizarán para realizar el entrenamiento del modelo y 2000 para la validación.
+
+\begin{figure}[t]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:ex_gpt2_wiki2bio}%
+			Ejemplo de generación de biografía con alucinaciones y degeneraciones}%
+		\includegraphics[width=1\textwidth]%
+		{Imagenes/Bitmap/06MLBio/ex_gpt2_wiiki2bio}%
+	\end{SubFloat}
+	\qquad
+	\begin{SubFloat}
+		{\label{fig:ex2_gpt2_wiki2bio}%
+			Ejemplo de generación de biografía con pocas alucinaciones}%
+		\includegraphics[width=0.95\textwidth]%
+		{Imagenes/Bitmap/06MLBio/ex2_gpt2_wiiki2bio}%
+	\end{SubFloat}
+	\caption{Resultados de ajuste de GPT-2 en Wiki2bio%
+		\label{fig:hallucinations_wiki2bio}}
+\end{figure}
+
+
+El funcionamiento interno del modelo en este modo de \textit{finetune} consiste en para cada uno de los ejemplos establecidos como entrada, el modelo va aprendiendo a través de probabilidades cuales pueden ser las palabras siguientes a una secuencia. De esta manera se va ajustando el modelo a la tarea que se pretende conseguir, modificando los valores originales obtenidos después del preentrenamiento original.
+
+Una vez realizado el entrenamiento que tomo en torno a dos horas, se puede comprobar con un ejemplo sencillo los resultados obtenidos. En la figura~\ref{fig:ex_gpt2_wiki2bio}, se muestra un ejemplo de resultado obtenido después de haber realizado el entrenamiento de ajuste. Como se puede apreciar algunos de los datos de salida son correctos y corresponden a los datos introducidos en la entrada. Sin embargo, se muestra un sobreajuste del modelo sobre los datos de entrenamiento ya que trata de generar un texto de longitud similar a los que han sido entrenados sin tener en cuenta el número de datos introducidos como entrada. 
+
+
+Por otra parte, se puede observar que este entrenamiento cae en alucinaciones y degeneraciones producidas en el momento en el que no sabe con que información rellenar el texto. Estas alucinaciones se deben a que cuando se construyo esta dataset, los autores tomaron el cuadro de información de Wikipedia como fuente y la primera oración de la página de Wikipedia como referencia de verdad básica de texto de destino. Sin embargo, la primera oración del artículo de Wikipedia no es necesariamente equivalente al cuadro de información en términos de la información que contiene. De hecho \cite{dhingra2019handling}, señala que el 62 por ciento de las primeras frases de \textit{Wiki2bio} tienen información adicional no indiciada en el infobox correspondiente. Este desajuste entre el origen y destino en los conjuntos de datos puede hacer que los modelos entrenados alucinen como ocurre en este caso.
+
+Para evitar en gran medida estas incorrecciones en la generación se puede limitar el número de palabras generadas dando como resultado la figura~\ref{fig:ex2_gpt2_wiki2bio} que muestra un texto mucho más natural aunque todavía mostrando algunas alucinaciones.
+
+
+\section{KEML}
+KELM es un gran corpus de datos que trata de generar texto a partir de un grafo de conocimiento representado en forma de tripletas semánticas. Esta base de datos no solo contiene información en el formato propio de una biografía sino que también contiene conjuntos de oraciones sobre otros temas. Es por esto que puede resultar adecuada para el sistema que se pretende construir ya que podrá representar cualquier tipo de información que se desee sin limitarse al formato biográfico.
+
+En este caso vamos a comprobar su funcionamiento bajo el modelo T5 descrito en el punto %TODO
+
+El proceso de ajuste de este modelo es similar al utilizado para ajustar wiki2bio sobre GPT-2.
+
+Resultados
+
+\section{WebNLG}
+
+
+
+En general, se basa en volver a entrenar el modelo de lenguaje previamente entrenado bajo un gran corpus de datos gracias al que aprende patrones lingüísticos generales, en un corpus mucho más pequeños

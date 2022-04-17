@@ -1,29 +1,68 @@
 from glob import glob
 import re
+from tabnanny import check
 import pandas as pd
 import urllib.request
 import zipfile
 import xml.etree.ElementTree as ET
 
-KELM            = "https://storage.googleapis.com/gresearch/kelm-corpus/updated-2021/quadruples-train.tsv"
-DART            = "https://raw.githubusercontent.com/Yale-LILY/dart/master/data/v1.1.1/dart-v1.1.1-full-train.json"
-WEBNLG          = "https://gitlab.com/shimorina/webnlg-dataset/-/archive/master/webnlg-dataset-master.zip?path=release_v3.0/en/train"
 
 
 class Dataset:
 
     def __init__(self):
+        self.__DEFAULT_URL = "https://gitlab.com/shimorina/webnlg-dataset/-/archive/master/webnlg-dataset-master.zip?path=release_v3.0/en/train"
+        self.__DEFAULT_LOAD_CSV_URL = "data/webNLG2020_train.csv"
         self.train_set_df = []
+        
+    
+    
+    def genDataset(self, url = None):
+
+        data_url = self.__checkUrl(url = url)
+
+        self.__extractAllData(data_url = data_url)
+
+        data_dct = self.__importData()
+        
+        df = self.__generateDataFrame(data_dct = data_dct)
+
+        df.to_csv('data/webNLG2020_train.csv')
 
 
-    def WebNLG_parser(self, url = WEBNLG):
-        urllib.request.urlretrieve(url, 'data/webNLG.zip')
+    def importDataset(self, csv_url = None):
+
+        csv_url = self.__checkCSVUrl(csv_url = csv_url)
+        self.train_set_df = pd.read_csv(csv_url, index_col=[0])
+
+    
+    
+
+    
+    def  __checkUrl(self, url : str):
+        if url is None:
+            url = self.__DEFAULT_URL
+        return url
+
+    def  __checkCSVUrl(self, csv_url : str):
+        if csv_url is None:
+            csv_url = self.__DEFAULT_LOAD_CSV_URL
+        return csv_url
+    
+
+    def __extractAllData(self, data_url : str):
+        urllib.request.urlretrieve(data_url, 'data/webNLG.zip')
+
         with zipfile.ZipFile('data/webNLG.zip', 'r') as zip_ref:
             zip_ref.extractall('data/webNLG')
-        
+
+
+
+    def __importData(self):
         files = glob("data/webNLG/webnlg-dataset-master-release_v3.0-en-train/release_v3.0/en/train/**/*.xml", recursive=True)
         triple_re=re.compile('(\d)triples')
-        data_dct={}
+        
+        data_dct={}        
         for file in files:
             tree = ET.parse(file)
             root = tree.getroot()
@@ -41,7 +80,12 @@ class Dataset:
                     strutured_master_str=(' && ').join(strutured_master)
                     data_dct[strutured_master_str]=unstructured
 
-        mdata_dct={"prefix":[], "input_text":[], "target_text":[]}
+        return data_dct
+
+    
+    def __generateDataFrame(self, data_dct):
+        
+        mdata_dct={"prefix":[], "input_text":[], "target_text":[]}        
 
         for st,unst in data_dct.items():
             for i in unst:
@@ -50,6 +94,8 @@ class Dataset:
                 mdata_dct['target_text'].append(i) 
                   
         df = pd.DataFrame(mdata_dct)
-        df.to_csv('data/webNLG2020_train.csv')
 
-        self.train_set_df = pd.read_csv('data/webNLG2020_train.csv', index_col=[0])
+        return df
+
+
+    

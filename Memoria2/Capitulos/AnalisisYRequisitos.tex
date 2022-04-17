@@ -1,0 +1,140 @@
+\chapter{Marco teórico}
+\label{cap:marco_teorico}
+
+
+%\section{Modelos Seq2Seq y mecanismos de atención}
+%El modelo Sequence-to-Sequence (Seq2Seq) caracterizado por la utilización de una arquitectura especial de Red Neuronal Recurrente (RNN), ha alcanzado un gran éxito a la hora de resolver problemas complejos de Procesamiento de Lenguaje Natural, incluso llegando a superar a los modelos estadísticos de lenguaje en su efectividad \citep{analytics_vidhya_2020}. Esto se debe a que aproximaciones estadísticas como los \textit{N-grams} no eran capaces de capturar dependencias de palabras de corpus de gran tamaño, se necesitaría demasiado espacio y memoria RAM para poder guardar las probabilidades de todas posibles combinaciones de N-gramas. Sin embargo, las redes neuronales recurrentes, que implementa este modelo, no están limitadas a observar únicamente las palabras previas a una secuencia, sino que permiten propagar información desde el comienzo de una oración hasta el final consiguiendo mejores predicciones.
+
+
+
+%\subsection{\textit{Long Short-Term Memory (LSTM)}}
+%Estas redes, propuestas por \citep{lstm} en el año 1997, surgieron como una evolución de las redes neuronales recurrentes. Su principal objetivo es ampliar la memoria para poder recordar no solo información reciente sino datos producidos mucho más tiempo atrás, ya que las redes neuronales recurrentes convencionales no eran capaces de recordar información que se había producido hacía varios \textit{timestep}; llevando a una memoria limitada para recordar secuencias de entrada más largas. Este problema es resultado del \textit{Vanishing Gradients} de los gradientes más lejanos en el tiempo.
+
+%\figura{Bitmap/02EstadoDeLaCuestion/lstm}{width=1\textwidth}{fig:lstm}%
+{Neurona LSTM}
+
+%Para solventar esta limitación, las redes \textit{Long Short-Term Memory} proponen una variación de las neuronas. Estas neuronas poseían una memoria o \textit{memory cell} donde almacenaban la información relevante de estados anteriores dependiendo de los pesos calculados. En cada neurona LSTM existen tres puertas a esta celda: la puerta de entrada (\textit{input gate}), la puerta de olvidar (\textit{forget gate}) y la puerta de salida (\textit{output gate}). Estas puertas regulan el flujo de información dentro y fuera de la celda. Deciden si se permite una nueva entrada a la memoria, si se elimina la información o si se deja que afecte a la salida del instante de tiempo actual. Estas puertas podemos codificarlas mediante una función de activación sigmoide, lo que hace posible incluirlas en la \textit{Backpropagation} solucionando el problema de \textit{Vanishing Gradients}. Toda esta explicación está representada en la figura .
+
+
+%\subsection{Arquitectura Encoder-Decoder}
+%Considerando los diferentes tipos de redes neuronales descritas en los apartados anteriores, se da paso a la explicación propia del modelo Seq2Seq. Desde un punto de vista muy general, podríamos representar este modelo como un sistema que toma una secuencia de elementos como entrada (input) y genera otra secuencia de elementos de salida (output). Como se muestra en la figura \ref{fig:basicseq2seq}, la arquitectura de este sistema sigue una arquitectura \textit{Encoder-Decoder}, compuesta internamente por dichos componentes, un \textit{encoder} y un \textit{decoder} que implementan redes neuronales recurrentes, concretamente LSTM o en menor número de casos GRU (\textit{Gated Recurrent Units}).
+
+
+%\figura{Bitmap/02EstadoDeLaCuestion/basicseq2seq}{width=1\textwidth}{fig:basicseq2seq}%
+%{Arquitectura de un sistema Seq2Seq}
+
+%La tarea del \textit{encoder} consiste en resumir la información de la secuencia que se introdujo como entrada en forma de un vector de estado oculto o \textit{context} y enviar los datos resultantes al \textit{decoder}. El objetivo principal de este vector es encapsular la información de todos los elementos de entrada para ayudar al \textit{decoder} a realizar predicciones precisas. Para calcular el estado oculto t-ésimo de la secuencia se utiliza la fórmula representada en la ecuación \ref{eq:encoder}, donde  $x_t$ corresponde a la secuencia de entrada en el instante de tiempo \textit{t} y \textit{W} representa la matriz de pesos a aplicar sobre los datos de entrada $W^{hx}$ y sobre la salida de la celda del instante anterior $W^{hh}$. Para cada una de las celdas del \textit{encoder} se calcula su vector de estado oculto, generando la última celda (en el instante de tiempo \textit{t}) el vector de estados finales.
+
+%\begin{equation}
+%	\label{eq:encoder}
+%	\Large
+%	h_t = f(W^{(hx)}x_t+W^{(hh)}h_{t-1})
+%\end{equation}
+
+
+%Por su parte, el \textit{decoder} utiliza como estado inicial la salida del \textit{encoder} correspondiente al vector de estados finales, calculando cada celda su estado oculto con la fórmula \ref{eq:decoder}. Una vez que se obtiene el estado oculto $h_{t}$, puede generarse la secuencia de palabras final aplicando al dataset de palabras junto con $h_{t}$ la función \textit{softmax}.
+
+%\begin{equation}
+%	\label{eq:decoder}
+%	\Large
+%	h_t = f(W^{(hh)}h_{t-1})
+%\end{equation}
+
+%Aunque esta aproximación parece solucionar muchos de los problemas de modelos anteriores, añade o mantiene limitaciones. Una de ellas es el cuello de botella que se genera en el último estado oculto del codificador ya que toda la información de la entrada debe atravesar el \textit{encoder} hasta este último punto para poder pasarle toda la información junta al \textit{decoder}. Además, ya que se intenta mapear una secuencia de longitud variable en una memoria de longitud fija y en el caso de textos largos podría perderse parte de la información. 
+
+
+%\subsection{Mecanismos de atención}
+
+%Ante los problemas mencionados anteriormente, se plantea la utilización de mecanismos de atención que permiten que el \textit{decoder} no tenga que recibir toda la información del \textit{encoder}, sino que se fija en aquellas palabras más importante que producen los estados ocultos de codificador en cada uno de sus pasos. Estos mecanismos de atención fueron introducidos inicialmente por \cite{Bahdanau} para la traducción automática aunque posteriormente se ha aplicado a una multitud de áreas. 
+
+
+%Para conseguir estos beneficios del mecanismo de atención, se modifica ligeramente la arquitectura del sistema añadiendo una capa intermedia entre el codificador y decodificador que recibe los estados ocultos que se van generando en el \textit{encoder}. Sin embargo, no se espera a que todos los estados ocultos estén calculados sino solo los más importantes a los que se les establece un mayor peso. Para que el almacenamiento de los estados ocultos no sea ineficiente, los estados ocultos recibidos se combinan en un vector llamado \textit{vector de contexto} que contendrá más o menos información de las palabras dependiendo de su peso (figura ~\ref{fig:basicseq2seq_attention2}). Estos pesos se calculan comparando el último estado oculto del \textit{decoder} con cada uno de los estados del codificador determinando así las palabras más importantes.
+
+
+%\figura{Bitmap/02EstadoDeLaCuestion/basicseq2seq_attention2}{width=1\textwidth}{fig:basicseq2seq_attention2}%
+%{Arquitectura de un sistema Seq2Seq con mecanismo de atención}
+
+
+%\section{Modelos pre-entrenados: Transformers}
+%\label{sec:transformers}
+%Los modelos pre-entrenados son modelos de aprendizaje profundo o \textit{Deep Learning} que surgieron como una evolución de los modelos Seq2Seq. Estos modelos de lenguaje son entrenados bajo grandes conjuntos de datos para realizar diversas tareas de Procesamiento de Lenguaje. Como parten de un conocimiento base, pueden ajustarse a tareas específicas sin requerir un entrenamiento desde cero. Este pre-entrenamiento es la clave de porque son tan valiosos, ya que permiten sin una gran esfuerzo computacional (normalmente tardan en entrenarse semanas o meses con los mejores computadores) construir un sistema de generación de lenguaje adaptándose al objetivo buscado. Otra ventaja de la existencia de este tipo de modelos es la posibilidad de elección de una pequeña \textit{dataset} para realizar el entrenamiento ya que los patrones lingüísticos generales ya se han aprendido durante el entrenamiento previo.
+
+
+
+%Dentro de este tipo de modelos pre-entrenados, destacan los \textit{Transformers} \citep{vaswani2017attention}. Estos modelos revolucionaron el Procesamiento de Lenguaje desde el momento en que se presentaron. Se basan en modelos Seq2Seq con mecanismos de atención y tratan de remediar los problemas de generación de este tipo de sistema. Recapitulando, la arquitectura neuronal recurrente propia del Secuencia a Secuencia implicaba un procesamiento secuencial para codificar la entrada en el \textit{encoder}. Posteriormente, se procesaba la información procedente del último estado oculto de codificador en el \textit{decoder} de la misma manera. Este procedimiento secuencial dificulta aplicar este tipo de modelos a la generación de textos largos, ya que tomaría mucho tiempo procesar todas las palabras de entrada a través de las distintas partes de la arquitectura. Ante esta problemática surgieron los mecanismos de atención que lograban paliar el cuello de botella producido en el último estado oculto del \textit{encoder}. Esta arquitectura mantenía las Redes Neuronales Recurrentes en codificador y decodificador como las LSTMs, sin embargo los \textit{Transformers} las sustituyeron por otras funciones lineales y no lineales que permitían un procesamiento mucho más rápido de la información.
+
+
+
+%El modelo \textit{Transformer} sustituye la capa de atención del modelo Seq2Seq implementada como un producto de matrices (\textit{Scaled Dot-Product Attention}), una función bilineal \citep{luong2015effective} o un perceptrón multicapa (\textit{Multi-layer Perceptron}), dependiendo del modelo, mejorando su rendimiento. El núcleo del modelo \textit{Transformers} reside en el mantenimiento de los productos escalares de matrices (\textit{Scaled Dot-Product Attention}) que posibilitan una gran eficiencia en tiempo y memoria ya que consiste únicamente en unas multiplicaciones básicas de matrices. Sin embargo, este mecanismo formará parte de la capa de atención multi-cabeza (\textit{Multi-Head Attention}) que viene sustituir la función completa de la capa de atención del Secuencia a Secuencia. 
+%El \textit{Multi-Head Attention} es un procedimiento consistente en varias capas en paralelo del anterior \textit{Scaled Dot-Product Attention}. Esta opción permite el procesamiento simultáneo de las diferentes entradas necesarias para la generación de texto que en el modelo con atención de Secuencia a Secuencia se realizaba de manera secuencial, lo que permite un procesamiento más eficiente, especialmente de grandes corpus de texto.
+
+
+%\figura{Bitmap/02EstadoDeLaCuestion/left-Scaled-Dot-Product-Attention-right-Multi-Head-Attention}{width=0.7\textwidth}{fig:comparationattention}%
+{Capa de atención de \textit{Transformers} \citep{atencion_capas}}
+
+
+
+%La arquitectura externa del modelo \textit{Transformer} no dista demasiado de las explicadas anteriormente ya que se trata de una evolución de los modelos Seq2Seq, manteniendo la existencia del \textit{encoder} y del \textit{decoder}. Las modificaciones se realizan en la estructura interna de ambos componentes. 
+
+%El \textit{encoder} o codificador comienza con un módulo \textit{Multi-Head Attention} que realiza \textit{Scaled Dot-Product Attention} sobre la secuencia de entrada. A este procedimiento le siguen varias capas de normalización y conexión residual \footnote{Más información en https://towardsdatascience.com/what-is-residual-connection-efb07cab0d55} para terminar con una capa de prealimentación (\textit{Feed-Forward Layer}) y otra capa de normalización y conexión residual. 
+
+%El \textit{decoder} o decodificador está compuesto de una estructura similar aunque algo más complicada. Comienza con un módulo compuesto por \textit{Multi-Head Attention} enmascarado para que posteriormente cada una de las palabras dependa únicamente de las palabras previas en el corpus. A continuación, una estructura semejante al \textit{encoder} recibe como entrada la salida del módulo anterior y la salida del codificador. Para finalizar, aplica una serie de funciones lineales y la función de activación \textit{Softmax}. De esta manera así obtiene diferentes probabilidades que generan la salida del sistema (figura ~\ref{fig:arquitectura_transformers}).
+
+
+
+%\figura{Bitmap/02EstadoDeLaCuestion/arquitectura_transformers}{width=0.7\textwidth}{fig:arquitectura_transformers}%
+%{Arquitectura del modelo Transformer}
+
+
+
+%Hay que destacar la existencia de una herramienta en Python denominada \textit{transformers} que proporciona una serie de sistemas de propósito general para Natural Language Understading (NLU) y Natural Language Generation (NLG). Ofrece más de 32 modelos preentrenados en más de 100 idiomas, entre los que se encuentra el español. Entre los modelos más utilizados encontramos los famosos GPT-2 y BERT junto con un gran número de variaciones de ellos dependiendo de los datos utilizados para su entrenamiento.
+
+%\subsection{GPT-2}
+
+%GPT-2 (\textit{Generative Pretrained Transformer}) es un modelo GLN presentado por OpenAI en el año 2019 basado en redes neuronales para secuencias, basadas en la autoatención enmascarada(\textit{masked self-attention}), y que ha sido construido sobre una arquitectura Transformer. El objetivo de este sistema es construir una distribución de probabilidad en la que para cada palabra posible a generar se le asigna una probabilidad en función del contexto anterior. Se trata de un modelo que ha sido preentrenado con un conjunto de datos correspondiente a las 8 millones de páginas web mejor valoradas en Reddit, lo que resulta en una gran base de conocimiento para generar textos automáticamente de manera muy correcta.
+
+%La potencia de este modelo es tal que sus creadores no quisieron en un primer momento publicar la versión completa por miedo de que se pudiera utilizar de manera ilícita. Según fueron pasando los años, se fueron liberando progresivamente diferentes versiones del modelo original ya que comenzaban a surgir otros proyectos con potencias igualmente competitivas. Estas diferentes versiones se diferenciaban en el número de parámetros que admitía la arquitectura y de esta manera se conseguía limitar su funcionamiento. La primera versión contaba con 117 miles de millones de parámetros mientras que la última versión, publicada en 2020, posee 1,5 billones.
+
+%GPT-2 únicamente está disponible en inglés aunque puede hacer uso de GoogleTranslate API para generar textos en otros idiomas. Es importante resaltar que al depender del traductor se puede ver disminuida la calidad de generación de lenguaje.
+
+%\subsection{BERT}
+%BERT (Bidirectional Encoder Representations from Transformers) es un modelo NLP desarrollado por Google y publicado a finales de 2018 \citep{Devlin2019BERTPO}. Está basado redes neuronales bidireccionales que tratan de predecir las palabras perdidas (enmascaradas) en una oración y determinar si dos oraciones consecutivas son continuación lógica entre sí para determinar si están conectadas por su significado. Aunque originalmente no estaba destinado a la generación de textos, \cite{wang-cho-2019-bert} publicaron un método de utilización de este sistema para conseguir la generación de lenguaje que parece dar muy buenos resultados. De hecho, consiguió mejorar los resultados de la versión publicada en aquellos tiempos por GPT-2. 
+
+%De este modelo han surgido numerosas variaciones que se han publicado a lo largo de estos años. Como se puede apreciar en la figura \ref{fig:modelos_bert}, encontramos distintas ramificaciones que podemos dividir en dos grupos: modelos preentrenados con un corpus específico perteneciente a un dominio y modelos \textit{fine-tuned} que se ajustan a una tarea específica utilizando un modelo previamente entrenado \citep{rajasekharan_2019}.
+%Otras variaciones de BERT corresponden a los modelos construidos a partir de él pero entrenados en otros lenguajes para generar textos en otra lengua distinta al inglés, que es la original. Beto es la versión en Español de BERT \citep{CaneteCFP2020} y ha sido entrenado con una gran corpus en dicho idioma.
+
+%\figura{Bitmap/02EstadoDeLaCuestion/modelos_bert}{width=0.9\textwidth}{fig:modelos_bert}%
+%{Modelos surgidos a partir de BERT}
+
+
+
+
+
+
+
+
+
+
+
+
+%\chapter{Análisis del problema y especificación de requisitos}
+%\label{cap:analisisYRequisitos}
+
+%Evgeny Morazov, en su obra \citep{morozov2015la} manifiesta que ``todos se apresuran a  celebrar la victoria, pero nadie recuerda qué pretendía conseguir''. Con estas palabras se pretende exponer la importancia de una buena investigación previa y análisis. En este capítulo se abordarán diferentes problemas a tener en cuenta antes de hacer frente la construcción de un sistema para la consecución de los objetivos expuestos. Primero se describirá la dificultad de los terapeutas para la composición íntegra de una historia de vida. Así mismo, se abordaran una serie problemas implicados en la generación deficiente de textos relacionados con la utilización de aproximaciones neuronales para dicha generación.
+
+
+
+%\section{Dificultad de composición de historias de vida}
+%Hablar sobre que es muy dificil por una persona crear una historia de vida
+
+%Hablar de que apenas se han encontrado soluciones tecnológicas que ayuden
+
+%Las historias de vida tradicionalmente tienen un formato en papel. Esto supone una serie de limitaciones obvias. Por una parte, encontramos la necesidad de almacenamiento de una gran cantidad de información. Ya que se trata de recopilar la mayor información posible respecto a la vida completa de una persona, después del proceso de extracción de datos, es necesario almacenarla en algún lugar. De manera tradicional, suele apuntarse toda la información en libros o si se opta por una decisión más innovadora, en formato electrónico. Además, la gestión de todo este contenido es muy complicado. 
+%Por otra parte, como paso previo a la escritura de la historia de vida, es necesario realizar una selección adecuada de los datos que se van a incluir sin dejar ninguna información relevante atrás. También hace falta concebir la estructura del escrito y que datos corresponden a cada una de dichas partes.
+
+%Si se consigue hacer este proceso de manera satisfactoria, se puede comenzar con la redacción de la historia de vida. Quienes escriben estas historias son los propios terapeutas y como escribir no es para nada simple, pueden tener ciertas dificultades a la hora de buscar combinaciones perfectas de palabras que expresen ciertos conceptos, perder tiempo leyendo una y otra vez una misma oración que no parece convencerle o simplemente quedarse sin ideas.
+
+%Por otra parte, la existencia de sistemas que permitan ayudarles en la tarea de clasificación de datos y redacción es prácticamente nula. Con los enfoques adecuados de generación de lenguaje podría llegar a construirse un sistema capaz de ello pero todavía existen ciertas limitaciones.
+
+
+
