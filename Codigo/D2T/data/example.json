@@ -1,7 +1,7 @@
 [
     {
         "source": "Elisa",
-        "relation": "birthPlace",
+        "relation": "birth place",
         "target": "Lugo, Galicia",
         "stage": "timeless",
         "themes": [
@@ -10,7 +10,7 @@
     },
     {
         "source": "Elisa",
-        "relation": "birthDate",
+        "relation": "birth date",
         "target": "18-05-1937",
         "stage": "timeless",
         "themes": [
@@ -66,7 +66,7 @@
     },
     {
         "source": "Juan",
-        "relation": "birthPlace",
+        "relation": "birth place",
         "target": "Santander",
         "stage": "timeless",
         "themes": [
@@ -76,7 +76,7 @@
     },
     {
         "source": "Juan",
-        "relation": "birthDate",
+        "relation": "birth date",
         "target": "25-11-1911",
         "stage": "timeless",
         "themes": [
@@ -86,7 +86,7 @@
     },
     {
         "source": "Eva",
-        "relation": "birthPlace",
+        "relation": "birth place",
         "target": "Barcelona",
         "stage": "timeless",
         "themes": [
@@ -96,7 +96,7 @@
     },
     {
         "source": "Eva",
-        "relation": "birthDate",
+        "relation": "birth date",
         "target": "12-01-1912",
         "stage": "timeless",
         "themes": [

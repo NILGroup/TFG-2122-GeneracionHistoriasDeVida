@@ -1,4 +1,7 @@
 import math
+from multiprocessing.sharedctypes import Value
+from pydoc import classname
+from typing import OrderedDict
 import dash
 from dash import dcc
 from dash import html
@@ -12,7 +15,6 @@ from colour import Color
 from textwrap import dedent as d
 import json
 
-from transformers import TFAlbertForMaskedLM
 
 
 from scripts.Graph import Graph
@@ -28,12 +30,13 @@ from dash.dependencies import ClientsideFunction, Input, Output
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets,external_scripts=["https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"])
-app.title = "Life Story Book"
+app.title = "Generación de historias de vida"
 
 INITIAL_TAGS = []
 ACCOUNT = "A0001"
 FILEURL = "data/example.json"
 SELECTED_TAGS = []  
+ORDER_TAGS = []
 
 TRIPLES = TriplesGenerator(FILEURL)
 
@@ -88,7 +91,6 @@ def filteredTriplesByTags(triplesTree, themesSelection):
 
         return diccionario
 
-
 def clusteringByTags(themesSelection):
 
     triplesClustersList = {}
@@ -123,7 +125,7 @@ def listTags2Tree(list_tags):
 def network_graph(fileurl,tags, AccountToSearch):
     if(len(tags)==0):
         figure = {
-            "layout": go.Layout(title='Interactive Transaction Visualization', showlegend=False,
+            "layout": go.Layout(title='Visualización interactiva', showlegend=False,
                                 margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
                                 xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
                                 yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
@@ -143,15 +145,6 @@ def network_graph(fileurl,tags, AccountToSearch):
     for stage in tags:
         stages.append(stage.split('_')[0])
 
-    
-    # #checkeamos el stage
-    # for index,item in edges.iterrows():
-    #     if(item['stage'] not in stages):
-    #         edges.drop(axis=0, index=index, inplace=True)
-    #         continue
-
-    #     nodesSet.add(item['source'])
-    #     nodesSet.add(item['target'])
 
     for index,item in edges.iterrows():
 
@@ -231,7 +224,7 @@ def network_graph(fileurl,tags, AccountToSearch):
 
         figure = {
             "data": traceRecode,
-            "layout": go.Layout(title='Interactive Transaction Visualization', showlegend=False,
+            "layout": go.Layout(title='Visualización interactiva', showlegend=False,
                                 margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
                                 xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
                                 yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
@@ -274,7 +267,7 @@ def network_graph(fileurl,tags, AccountToSearch):
     index = 0
     for node in G.nodes():
         x, y = G.nodes[node]['pos']
-        hovertext = "Name: " + str(node)
+        hovertext = "text: " + str(node)
         node_trace['x'] += tuple([x])
         node_trace['y'] += tuple([y])
         node_trace['hovertext'] += tuple([hovertext])
@@ -302,7 +295,7 @@ def network_graph(fileurl,tags, AccountToSearch):
     #################################################################################################################################################################
     figure = {
         "data": traceRecode,
-        "layout": go.Layout(title='Interactive Transaction Visualization', showlegend=False, hovermode='closest',
+        "layout": go.Layout(title='Visualización Interactiva', showlegend=False, hovermode='closest',
                             margin={'b': 40, 'l': 40, 'r': 40, 't': 40},
                             xaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
                             yaxis={'showgrid': False, 'zeroline': False, 'showticklabels': False},
@@ -323,46 +316,47 @@ def network_graph(fileurl,tags, AccountToSearch):
                             )}
     return figure
 
-def recursivetags(tags,pad, before_id):
+def recursivetags(name, tags, pad, before_id, class_name):
+
     if(len(tags)==0):
-        return 0,0
+        button = dbc.Button(name, n_clicks=0, class_name='theme tag', id=before_id)
+        return dbc.Card(children = button, style={'marginLeft':str(pad)+'em'}), [before_id]
     else:
         tree = []
         list_id = []
-        for t in tags:
-            c, l = recursivetags(tags[t], pad+1, before_id+'_'+t)
-
-            tree.append(dbc.Card([dbc.Button(t,n_clicks=0,class_name="tag",id=before_id+'_'+t)],style={'marginLeft':str(pad)+'em'}))
-            
-            list_id.append(before_id+'_'+t)
-            
-            if(c!=0):
-                tree.extend(c)
-                list_id.extend(list(l))
-
     
-        return tree, list_id
+        tree.append(dbc.Button(name, n_clicks=0, 
+                        class_name=class_name, id=before_id))
+        list_id.append(before_id)
+
+        for t in tags:
+            tree_children, ids_used = recursivetags(t, tags[t], pad+1, before_id+'_'+t,'theme tag')
+
+            list_id.extend(list(ids_used))
+            tree.append(tree_children)
+
+        drag = html.Div(className = "draggable",children=tree)
+        return dbc.Card(children = drag, style={'marginLeft':str(pad)+'em'}), list_id
+
 
 def tags_network(fileUrl):
+
+
     tg = TriplesGenerator(fileUrl)
     triples = TripleList(data = tg.to_json())
     stages = triples.getTagStages()
-
     content = []
     list_id = []
     
     for stage in stages:
         tags =  triples.getTagTrees()[stage]
-        content.append(
-            dbc.Card([                                    
-                dbc.Button(stage,class_name="stage",id=stage, n_clicks=0)]))
-        c, l = recursivetags(tags, 1, stage)
-        
-        content.extend(c)
-        list_id.append(stage)
+           
+        c, l = recursivetags(stage, tags, 1, stage,'theme stage')
+        content.append(c)
         list_id.extend(list(l))
 
     return content, list_id
+
 
 ######################################################################################################################################################################
 # styles: for right side hover/click component
@@ -373,32 +367,36 @@ styles = {
     }
 }
 
-app.layout = html.Div([
-    #########################Title
-    html.Div([html.H1("Life Story Book")],
-             className="row",
-             style={'textAlign': "center"}),
-    #############################################################################################define the row
+app.layout = html.Div(
+    id="ppal_container",
+    children=[
+
+    #----------- titulo -----------#
+    html.Div([html.H1(app.title)],
+            className="row", 
+            id="titulo"),
+
+    #----------- contenido -----------#
     html.Div(
         className="row",
         children=[
-            ##############################################left side two input components
-            
+
+            #----------- columna de tags -----------#
             html.Div(
                 className="two columns",
                 children=[
-                   html.Div(
+                html.Div(
                         className="twelve columns ",
                         style={'display':'grid'},
                         children=[
-                            html.H2("Lista de tags",style={'marginLeft':'1em'}),
+                            html.H2("Lista de tags", className="subtitle"),
                             
                             html.Div(
-                                className="Header",
-                                style={'style':'inline-block', 'width':'100%'},
+                                id="tags_header",
                                 children=[
-                                    html.Button('Todas', id="allTags", className="button",n_clicks=0, style={'float':'left'}),
-                                    html.Button('Ninguna', id="noneTags", className="button", n_clicks=0, style={'float':'right'}),                              
+                                    html.Button('Todas', id="allTags", className="button options_button", n_clicks=0, style={'float':'left'}),
+                                    html.Button('Ninguna', id="noneTags", className="button options_button", n_clicks=0, style={'float':'right'}),                              
+                                    
                                 ]
                             ),                               
                             
@@ -409,28 +407,29 @@ app.layout = html.Div([
                             ),                            
                         ]
                     ),
-                    html.Div(
-                        className="twelve columns",
-                        children=[
-                            dcc.Markdown(d("""
-                            **Account To Search**
+                html.Div(
+                    className="twelve columns",
+                    children=[
+                        dcc.Markdown(d("""
+                        **Account To Search**
 
-                            Input the account to visualize.
-                            """)),
-                            dcc.Input(id="input1", type="text", placeholder="Account"),
-                            html.Div(id="output")
-                        ],
-                        style={'height': '300px'}
-                    )
+                        Input the account to visualize.
+                        """)),
+                        dcc.Input(id="input1", type="text", placeholder="Account"),
+                        html.Div(id="output")
+                    ],
+                    style={'height': '300px'}
+                )
                 ]
             ),
-            ############################################middle graph component
+            
+            #----------- grafo de conocimiento y resultados de generación-----------#
             html.Div(
                 className="eight columns",
                 children=[
                     
                     dcc.Graph(id="my-graph",figure=network_graph(FILEURL, INITIAL_TAGS, ACCOUNT)),
-                   
+                
                     html.Div(
                         className="form-outline",
                         children=[
@@ -453,7 +452,7 @@ app.layout = html.Div([
                 ]
             ),
 
-            #########################################right side two output component
+            #----------- columna de información -----------#
             html.Div(
                 className="two columns",
                 children=[
@@ -461,9 +460,9 @@ app.layout = html.Div([
                         className='twelve columns',
                         children=[
                             dcc.Markdown(d("""
-                            **Hover Data**
+                            **Información dinámica del nodo**
 
-                            Mouse over values in the graph.
+                            Información sobre el nodo al pasar el cursor del ratón por encima
                             """)),
                             html.Pre(id='hover-data', style=styles['pre'])
                         ],
@@ -473,18 +472,19 @@ app.layout = html.Div([
                         className='twelve columns',
                         children=[
                             dcc.Markdown(d("""
-                            **Click Data**
+                            **Información del nodo seleccionado**
 
-                            Click on points in the graph.
+                            Información del nodo seleccionado del grafo.
                             """)),
                             html.Pre(id='click-data', style=styles['pre'])
                         ],
                         style={'height': '400px'})
                 ]
             ),
-            html.Div(id='hidden-div', style={'display':'none'})
+            html.Div("hola",id='hidden-div', style={'display':'none'})
         ]
     )
+    
 ])
 
 
@@ -495,7 +495,6 @@ app.layout = html.Div([
     [Input(i, 'id') for i in tags_network(FILEURL)[1]],
     [Input(i, 'n_clicks') for i in tags_network(FILEURL)[1]]
 )
-
 def update_output(*args):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]    
     for changed in changed_id:
@@ -518,19 +517,18 @@ def update_output(*args):
         theme_name = args[i]
         if(theme_n_clicks%2==1): # No seleccionado
             if('_' in theme_name):
-                styles.append('tag NotSelected')
+                styles.append('theme tag NotSelected')
             else:
-                styles.append('stage NotSelected')
+                styles.append('theme stage NotSelected')
 
         else: # Seleccionado
             if('_' in theme_name):
-                styles.append('tag')
+                styles.append('theme tag')
             else:
-                styles.append('stage')
+                styles.append('theme stage')
 
-            
+      
     return network_graph(FILEURL, SELECTED_TAGS, 0), styles
-
 
 @app.callback(
     Output('hover-data', 'children'),
@@ -540,20 +538,33 @@ def display_hover_data(hoverData):
     return json.dumps(hoverData, indent=2)
 
 
-
 @app.callback(
     Output('outputGenerator','value'),
-    Input('generator','n_clicks')
+    Input('generator','n_clicks'),Input("hidden-div", "className"),Input('outputGenerator','value')
 )
-def display_output_text(n_clicks):
+def display_output_text(n_clicks,tags,text):
     if(len(SELECTED_TAGS)==0):
         return 'No output'
     data = TripleList(TRIPLES.to_json())
     triplesTree = data.triplesByTags()
-    triples_filtered = filteredTriplesByTags(triplesTree, listTags2Tree(SELECTED_TAGS))
-    triplesClusters = clusteringByTags(triples_filtered)
-    text = printAllText(triplesClusters)
+    
+    order_tags= []
+    tags =tags.split(",")
+    for tag in tags:
+        if tag in SELECTED_TAGS:
+            order_tags.append(tag)
+    
+    
+    changed_id = [p['prop_id'] for p in dash.callback_context.triggered]
+
+    if('generator.n_clicks' in changed_id):
+        print("Generando...")
+        triples_filtered = filteredTriplesByTags(triplesTree, listTags2Tree(order_tags))
+        triplesClusters = clusteringByTags(triples_filtered)
+        text = printAllText(triplesClusters)
+
     return text
+
 
 
 
@@ -586,14 +597,12 @@ app.clientside_callback(
     [Input("drag_container", "id")],
 )
 
-# for i in tags_network(FILEURL)[1]:
-#     app.clientside_callback(
-#     ClientsideFunction(namespace="clientside", function_name="tag_selection"),
-#     Output(i, "class_name"),    
-#     Input(i, "id"),
-#     Input(i, "n_clicks")
-# )
 
+app.clientside_callback(
+    ClientsideFunction(namespace="clientside", function_name="order"),
+    Output("hidden-div", "className"),
+    [Input(i, 'n_clicks') for i in tags_network(FILEURL)[1]]
+)
 
 
 if __name__ == '__main__':

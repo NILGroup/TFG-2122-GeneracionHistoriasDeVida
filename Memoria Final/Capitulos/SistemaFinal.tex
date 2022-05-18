@@ -1,0 +1,430 @@
+\chapter{Sistema final}
+\label{cap:sistemafinal}
+
+En el presente capítulo se dispone la solución final adoptada para solucionar la problemática estudiada en el apartado \ref{sec:ObjetivosYRequisitos}. Para ello, se describirá en profundidad cada una de las capas mencionadas como componentes básicos de la arquitectura del sistema. Con respecto al orden de presentación, se comenzará con la exposición del modelo de lenguaje y una vez comprendidos y analizados todos los requerimientos de este componente, se estudiaran las diferentes posibilidades a tener en cuenta para el preprocesado de los datos de entrada y postprocesado de la salida.
+
+
+\section{Modelo de lenguaje}
+
+En esta sección se describen de las tareas llevadas a cabo para la realización del ajuste o \textit{tuning} del modelo pre-entrenado escogido sobre un conjunto de datos. Recordando, después de realizar una comparativa de resultados en el apartado \ref{sec:seleccion_modelo} se determinó que la combinación que mejores resultados aportaba a la generación de datos a texto de tipo biográficos era el modelo T5 junto con la \textit{dataset} WebNLG. De esta manera se mostrará como se realizó el proceso completo de entrenamiento para la generación de un nuevo modelo de lenguaje ajustado adecuado a los objetivos de este trabajo.
+
+\subsection{Limpieza y transformación de los datos de \textit{WebNLG}}
+\label{sec:webnlg_limpieza}
+
+El primer paso llevado a cabo fue la limpieza y transformación de los datos almacenados en el conjunto de datos WebNLG de una manera más exhaustiva a la realizada durante el proceso de comparativa de modelos. La motivación de este preprocesado viene de la necesidad de garantizar un correcto entrenamiento desde la primera ejecución, dado el gran tiempo que tardará en realizarse dicho entrenamiento, de tal manera que desde el primer momento se puedan obtener resultados correctos. Otra de las ventajas de realización de esta limpieza viene motivada por la especial utilidad que tiene cuando el modelo de lenguaje pre-entrenado considerado no fue construido bajo corpus de datos como el que se va a utilizar, por lo que no tiene aprendida la representación lingüística concreta de la información.
+
+
+Así, para garantizar la realización de un correcto entrenamiento, se eliminarán y reemplazarán aquellos símbolos que pudieran interferir en el aprendizaje del modelo aportando ruido al modelo a través de la aplicación de expresiones regulares. Las tareas llevadas a cabo fueron las siguientes:
+
+\begin{itemize}
+    \item Eliminación de la información sobre el lenguaje utilizado en la información de las tripletas. Dado que la base de datos tiene dos versiones en diferentes lenguajes: ruso e inglés; en ocasiones aparece en la lista de tripletas el \textit{string} ``@en'' referido al idioma inglés, que eliminaremos para que el modelo no le asocie un significado respecto a la información de destino (tabla \ref{tab:clean_@en}).
+    
+    \begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{p{0.2\linewidth} | p{0.7\linewidth}}
+    Original & 1\_Decembrie\_1918\_University,\_Alba\_Iulia | nickname | Uab \&\& 1\_Decembrie\_1918\_University,\_Alba\_Iulia | rector | "Breaz Valer Daniel"\textcolor{codepurple}{@en}\\ \hline
+    Eliminación de ``@en'' & 1\_Decembrie\_1918\_University,\_Alba\_Iulia | nickname | Uab \&\& 1\_Decembrie\_1918\_University,\_Alba\_Iulia | rector | "Breaz Valer Daniel"  \\
+    \end{tabular}
+    \caption{Eliminación de `@en''}
+    \label{tab:clean_@en}
+    \end{center}
+    \end{table}
+    
+    \item Eliminación de símbolos como la barra baja (\_), y comillas dobles (") introducidas a lo largo de todos las tripletas para separar palabras o diferenciar conceptos de varias palabras. Se eliminaron para que el modelo no establezca por probabilidades la consideración de estos tokens dentro de la entrada como un token clave (tabla \ref{tab:clean_}).
+    
+      
+    \begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{p{0.2\linewidth} | p{0.7\linewidth}}
+    Original & 1\textcolor{codepurple}{\_}Decembrie\textcolor{codepurple}{\_}1918\textcolor{codepurple}{\_}University,\textcolor{codepurple}{\_}Alba\textcolor{codepurple}{\_}Iulia | nickname | Uab \&\& 1\textcolor{codepurple}{\_}Decembrie\textcolor{codepurple}{\_}1918\textcolor{codepurple}{\_}University,\textcolor{codepurple}{\_}Alba\textcolor{codepurple}{\_}Iulia | rector | \textcolor{codepurple}{"}Breaz Valer Daniel\textcolor{codepurple}{"}\\ \hline
+    Eliminación de barra baja y comillas dobles & 1 Decembrie 1918 University, Alba Iulia | nickname | Uab \&\& 1 Decembrie 1918 University, Alba Iulia | rector |  Breaz Valer Daniel \\
+    \end{tabular}
+    \caption{Eliminación de barra baja y comillas dobles}
+    \label{tab:clean_}
+    \end{center}
+    \end{table}
+    
+   \item Eliminación de urls dentro de la información de las tripletas. En algunas ocasiones, al referenciar un determinado objeto, se incluía la url como más información sobre el objeto, procedente de incluir \textit{links} en la web de donde proceden estos datos. Para eliminarlos, se buscó la secuencia ``\^{ }\^{ } <http'' y se eliminó hasta la siguiente ocurrencia del token ``>'' de cierre de la url (tabla \ref{tab:clean_url}). 
+    
+      
+    \begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{p{0.2\linewidth} | p{0.7\linewidth}}
+    Original & Alan\_Bean | nationality | United\_States \&\& Alan\_Bean | occupation | Test\_pilot \&\& Alan\_Bean | almaMater | UT Austin, B.S. 1955 \&\& Alan\_Bean | birthPlace | Wheeler,\_Texas \&\& Alan\_Bean | timeInSpace | "100305.0" \textcolor{codepurple}{\^{}\^{}<http://dbpedia.org/datatype/minute>} \&\& Alan\_Bean | selection | 1963\\ \hline
+    Eliminación de urls & Alan Bean | nationality | United States \&\& Alan Bean | occupation | Test pilot \&\& Alan Bean | almaMaterr |  UT Austin, B.S. 1955  \&\& Alan Bean | birthPlace | Wheeler, Texas \&\& Alan Bean | timeInSpace |  100305.0 \&\& Alan Bean | selection | 1963 \\
+    \end{tabular}
+    \caption{Eliminación de urls}
+    \label{tab:clean_url}
+    \end{center}
+    \end{table}
+    
+    
+    \item Eliminación de la secuencia ``\^{}\^{}xsd:...''. Esta secuencia aparece generalmente a continuación de la ocurrencia de todo tipo de información numérica como fechas de nacimiento, distancias y etcétera, y se utilizan para denotar su tipo concreto; así para fechas se utilizará ``\^{}\^{}xsd:date'' y para números enteros positivos ``\^{}\^{}xsd:NonNegativeInteger'', entre otros. Los resultados de eliminación de esta secuencia se pueden comprobar en la tabla\ref{tab:clean_xsd}.
+    
+    
+    \begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{p{0.2\linewidth} | p{0.7\linewidth}}
+    Original & AWH\_Engineering\_College | country | India \&\& AWH\_Engineering\_College | established | 2001 \&\& AWH\_Engineering\_College | facultySize | "250" \textcolor{codepurple}{\^{}\^{}xsd:nonNegativeInteger} \&\& AWH\_Engineering\_College | state | Kerala \&\& AWH\_Engineering\_College | city | "Kuttikkattoor"@en \&\& India | river | Ganges\\ \hline
+    Eliminación de tipos numéricos & AWH Engineering College | country | India \&\& AWH Engineering College | established | 2001 \&\& AWH Engineering College | faculty size | 250 \&\& AWH Engineering College | state | Kerala \&\& AWH Engineering College | city |  Kuttikkattoor \&\& India | river | Ganges \\
+    \end{tabular}
+    \caption{Eliminación de tipos numéricos}
+    \label{tab:clean_xsd}
+    \end{center}
+    \end{table}
+    
+    
+    \item Para terminar, en cada objeto -relación-  de las tripletas, se encuentran unidas sus palabras diferenciando unas de otras por la modificación de la primera letra a letra mayúscula. Para que el modelo aprenda una mejor representación de los datos de entrada, se separarán las palabras de cada relación y se pasarán a minúsculas completamente. En el ejemplo de la tabla \ref{tab:clean_separar} se muestran los resultados de realización de este proceso.
+    
+    
+    \begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{p{0.2\linewidth} | p{0.7\linewidth}}
+    Original & 11264\_Claudiomaccone | \textcolor{codepurple}{averageSpeed} | 18.29 (kilometrePerSeconds) \&\& 11264\_Claudiomaccone | \textcolor{codepurple}{orbitalPeriod} | 1513.722 (days) \&\& 11264\_Claudiomaccone | discoverer | Nikolai\_Chernykh \&\& 11264\_Claudiomaccone | apoapsis | 475426000.0 (kilometres)\\ \hline
+    Separación de palabras de la relación & 11264 Claudiomaccone | average speed | 18.29 (kilometrePerSeconds) \&\& 11264 Claudiomaccone | orbital period | 1513.722 (days) \&\& 11264 Claudiomaccone | discoverer | Nikolai Chernykh \&\& 11264 Claudiomaccone | apoapsis | 475426000.0 (kilometres) \\
+    \end{tabular}
+    \caption{Separación de palabras de la relación}
+    \label{tab:clean_separar}
+    \end{center}
+    \end{table}
+    
+\end{itemize}
+
+Además, se eliminaron aquellos ejemplos del conjunto de entrenamiento duplicados, resultando al final en un total de 71.459 ejemplos de entrenamiento, 1.203 ejemplos de test y 9035 ejemplos de validación.
+
+\subsection{\textit{Tokenizer}}
+\label{sec:tokenizador}
+Internamente, el modelo de lenguaje no puede operar sobre datos en lenguaje natural sino que estas operaciones ( lineales, matriciales....) se realizan sobre representaciones numéricas. Así pues, para convertir los datos de entrada representados en lenguaje natural a números se llevará a cabo un proceso de la tokenización de los datos utilizados para el entrenamiento. Mediante la utilización de un tokenizador podemos transformar estas representaciones lingüística a datos tratables por las operaciones matemáticas internas del modelo, en forma de identificadores numéricos únicos para cada token de entrada.
+
+En este caso, el tokenizador utilizado es la versión ``\textit{t5-base}'' del \textit{T5Tokenizer} incluído dentro de la biblioteca \textit{Transformers}. Como se comentó anteriormente, esta implementación utiliza el algoritmo \textit{SentencePiece}, basado en subpalabras y que resulta bastante eficiente cuando se disponen de una gran cantidad de datos para tokenizar, dado que es muchísimo más veloz que otros algoritmos utilizados por muchos modelos de lenguaje y utiliza menos espacio para realizar el proceso de tokenización mediante el no almacenamiento de los datos en disco.
+
+El primer paso después de descargar e importar las bibliotecas y clases necesarias, es comprobar el funcionamiento del tokenizador. Como primer punto, se codificó uno de los ejemplos de entrada de la base de datos ``ALCO RS-3 | builder | American Locomotive Company </s>'' resultando en un objeto \textit{tensor}. Para codificarlo se utilizaron los parámetros:
+\begin{itemize}
+    \item \textbf{\textit{truncation=True}:} Cada  uno de los ejemplos del conjunto de datos puede tener una longitud diferente. Sin embargo, nos conviene limitar la longitud máxima de los ejemplos con la finalidad de reducir la complejidad.
+    \item \textbf{\textit{max\_length=1024}:} Establece la longitud máxima de la lista de identificadores obtenida. Junto con la opción \textit{truncation}, si alguno de los ejemplos posee una longitud mayor, se truncará hasta esta longitud máxima expuesta. 
+    \item \textbf{\textit{return\_tensors='pt'}:} El resultado de la tokenización será un objeto tensor, más adecuado para el entrenamiento. Si no se establece esta opción se obtiene como resultado una lista de Python.
+\end{itemize} 
+
+En los ejemplos siguientes se puede comprobar la generación de la lista de tokens en forma de objeto tensor.
+
+En este primer ejemplo (código \ref{lst:t5tokenizerMaxLength3}), se puede comprobar que el establecimiento de un \textit{max\_lenght} menor a la longitud del resultado y la opción de truncamiento, acortan la longitud del objeto atendiendo a la máxima longitud establecida. Con el método decoder se muestra como solo se ha podido codificar la primera palabra (formada por el token 'AL' y el token 'CO'), secuencia que finaliza siempre con el token de separación '</s>'.
+
+
+\begin{lstlisting}[language=Python, caption=Tokenizador con max\_length igual a 3, label={lst:t5tokenizerMaxLength3}]
+   encoded = tokenizer.encode(input_batch, max_length=3, return_tensors='pt', truncation=True)
+    
+>> tensor([[8761, 5911, 1]])
+    
+   
+   tokenizer.decode(encoded[0])
+   
+>> 'ALCO</s>'
+\end{lstlisting} 
+
+
+Par finalizar, en el código \ref{lst:t5tokenizerMaxLength1024} se muestra el resultado de aplicar los parámetros correctos a la obtención de los identificadores que representan el texto y el proceso de decodificación para comprobar que ambos procesos están bien implementados.
+
+\begin{lstlisting}[language=Python, caption=Tokenizador con parámetros utilizados, label={lst:t5tokenizerMaxLength1024}]
+   encoded = tokenizer.encode(input_batch, max_length=3, return_tensors='pt', truncation=True)
+    
+>> tensor([[8761, 5911, 3, 5249, 3486, 1820, 918, 49, 1820, 797, 1815, 287, 32, 3268, 1958, 1]])
+
+
+   tokenizer.decode(encoded[0])
+   
+>> 'ALCO RS-3 | builder | American Locomotive Company</s>'
+\end{lstlisting} 
+
+
+Después de comprender el funcionamiento de este proceso, se puede acotar el máximo número de \textit{tokens} de una entrada del modelo al número máximo que aparece en la \textit{dataset} para así ahorrar espacio a la hora de realizar el entrenamiento. Para ello se creó una lista que contiene los tokens de cada uno de los ejemplos, para a continuación, obtener una distribución de las longitudes de la lista de tokens para cada una de las partes de los ejemplos de la \textit{dataset} (recordamos que cada objeto se compone de ``\textit{input\_text}'' y ``\textit{target\_text}''). 
+
+\begin{figure}[!h]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:distribucion_input}%
+			Distribución de la longitud de los datos de entrada}%
+		\includegraphics[width=0.41\textwidth]%
+		{Imagenes/Bitmap/05ModeladoDeLenguaje/distribucion_input}%
+	\end{SubFloat}
+	\qquad
+	\begin{SubFloat}
+		{\label{fig:distribucion_target}%
+			Distribución de la longitud de los datos de destino}%
+		\includegraphics[width=0.4\textwidth]%
+		{Imagenes/Bitmap/05ModeladoDeLenguaje/distribucion_targetpng}%
+	\end{SubFloat}
+	\begin{SubFloat}
+		{\label{fig:distribucion_todas}%
+			Distribución con datos de entrada y destino}%
+		\includegraphics[width=0.7\textwidth]%
+		{Imagenes/Bitmap/05ModeladoDeLenguaje/distribucion_todas}%
+	\end{SubFloat}
+	\caption{Distribución de longitud de tokens en el \textit{dataset}%
+		\label{fig:distribucion-longitud-tokens}}
+\end{figure}
+
+En la figura \ref{fig:distribucion-longitud-tokens}, se puede observar esta distribución de longitudes en la que el eje de abscisas x representa la longitud en tokens de los ejemplos y el eje y, el número de ejemplos con esa longitud. Destaca que la longitud máxima de los datos de entrada (``\textit{input\_text}'') es ligeramente mayor que la de los datos de destino (``\textit{targe\_text}'). Sin embargo, si comparamos las gráficas, la distribución de longitudes de los datos de entrada sigue una distribución plana con una varianza considerablemente alta, lo que significan que tenemos datos equilibrados en sus varias longitudes. Por el contrario, los datos de destino siguen una distribución normal entorno a la media y una diferencia entre longitudes algo menor (varianza).
+
+
+\subsection{Optimización de hiperparámetros}
+Al igual que en la prueba realizada en el apartado \ref{sec:seleccion_modelo} para ajustar T5 bajo KELM y WebNLG, haremos uso del módulo \textit{AdaFactor} \citep{shazeer2018adafactor} para ajustar los hiperparámetros que controlan el entrenamiento de manera dinámica. Este módulo es presentado en varios artículos como un optimizador de parámetros especialmente capaz en el ajuste de la familia de modelos T5 (ya que fue construido en vista a utilizarlo justo a este modelo), acelerando la convergencia del modelo de aprendizaje durante el entrenamiento con un coste bastante bajo. Los hiperparámetros utilizados se muestran a continuación:
+
+\begin{itemize}
+    \item \textbf{\textit{lr} (\textit{Learning Rate} o Tasa de aprendizaje)} \hfill
+    
+    La tasa de aprendizaje es un hiperparámetro de ajuste utilizado en algoritmos de optimización para controlar cuánto modificar el modelo en base al error estimado cada vez que actualizamos los pesos de dicho modelo. Valores pequeños para la tasa de aprendizaje puede resultar en un proceso de entrenamiento muy extenso, mientras que valores muy altos resultan en una convergencia más rápida aunque potencialmente inestable. En nuestro caso, utilizamos para este hiperparámetro un valor constante de 0.001, según recomiendan los autores del algoritmo de optimización AdaFactor.
+
+    
+    \item \textbf{\textit{eps} (\textit{Epsilon})} \hfill
+    
+    Este parámetro define dos constantes numéricas en punto flotante en forma de objeto \textit{tupla} (\textit{tuple([float][float]}), que representan las constantes de regularización $\epsilon_1$ y $\epsilon_2$ que tienen la función de definir un bias para el gradiente cuadrado (\textit{square gradient} y una cota inferior para la escala de parámetros, respectivamente. Los valores utilizados para estos parámetros son $\epsilon_1=10^-30$ y $\epsilon_2=10^-3$.
+    
+    
+    \item \textbf{\textit{clip\_threshold}} \hfill
+    
+    Umbral de la media cuadrática de la actualización del gradiente final. Este parámetro se ha establecido a 1.0 según se recomienda para el modelo T5. 
+    
+    \item \textbf{\textit{decay\_rate}} \hfill
+    
+    Coeficiente utilizado para calcular las medias móviles cuadrados. El valor que utilizamos para este parámetro es -0.8.
+    
+
+    \item \textbf{\textit{weight\_decay }} \hfill
+    
+    Para disminuir los pesos, se añade el termino de regularización L2 a la función de pérdida, sin embargo el valor recomendado es 0.0.
+    
+    \item \textbf{\textit{scale\_parameter }} \hfill
+    
+    Este parámetro de tipo \textit{booleano} si es establecido a \textit{True} la tasa de aprendizaje $lr$ escala según la media cuadrática. En este caso, cambiamos el valor por defecto a \textit{True} por \textit{False} ya que si establecemos de manera externa el valor de $lr$ es más recomendable.
+    
+    \item \textbf{\textit{relative\_step }} \hfill
+    
+    Al igual que el anterior parámetro, es de tipo \textit{booleano}. Si valor determina la utilización de otro mecanismo de escalada de la tasa de aprendizaje, esta vez dependiente del tiempo. El valor establecido es \textit{False} según las recomendaciones de configuración para ajustar el modelo T5.
+    
+    \item \textbf{\textit{warmup\_init }} \hfill
+    
+    En el caso de emplear el método anterior de escalado de la tasa de aprendizaje dependiendo del tiempo, puede establecerse un ``calentamiento'' para el inicio del procedimiento, comenzando con una tasa de aprendizaje muy baja para un número determinado de pasos de entrenamiento, para posteriormente utilizar el ritmo establecido. Se estableció a \textit{False}. 
+
+\end{itemize}
+
+Una vez definido el optimizador que acelerará la convergencia del entrenamiento, otros hiperparámetros deben ser especificados. Por una parte, el número de \textit{epochs} se va a incrementar según los resultados obtenidos para estudiar el proceso de aprendizaje del modelo. Mientras que el número de lotes o \textit{batch} se estableció partir del tamaño del conjunto y el tamaño de lote utilizado. En general, un mayor tamaño de lote conseguirá una convergencia más rápida sacrificando el coste en espacio requerido. Aunque la cantidad de datos a entrenar será la misma aun modificando el valor de este parámetro, el espacio requerido en un momento preciso de tiempo es una cota superior del tamaño de lote. Así, se escogió un valor para este parámetro lo suficientemente alto como para que el entrenamiento tuviera un rendimiento adecuado, manteniéndose relativamente bajo para que no se desbordara la memoria. El valor finalmente utilizado para el tamaño de \textit{batch} fue ocho.
+
+\subsection{Definición de la \textit{dataset} para el entrenamiento}
+
+Para terminar el proceso de preparado de los datos para el entrenamiento necesitabamos conocer el valor de algunos parámertros. Una vez conocidos se puede continuar con el proceso de preparación. Para ello, hemos creado una clase llamada \textit{WebNLGDataset} que abstrae el conjunto de datos en un objeto manipulable. Esta clase dispone de una serie de métodos para convertir los ejemplos del conjunto de datos a datos numéricos tokenizados junto con los métodos necesarios para acceder a ellos. Para poder disponer de toda la información de la \textit{dataset} guardamos en este objeto el \textit{dataFrame} contenedor de los datos originales, el tokenizador, el \textit{token} utilizado como \textit{token} de comienzo de texto (en nuestro caso utilizaremos \textit{D2T}, procedente del objetivo de construcción del modelo, conversión de datos a texto), tipo de conjunto de datos que estamos guardando (\textit{'train'}) y los datos tokenizados de entrada y de salida atendiendo al tamaño de \textit{batch}. 
+
+El proceso de construcción de los datos tokenizados se realiza a través del método que hemos denominado \textit{build}. Este método itera sobre el número de \textit{batches} para crear pequeños subconjuntos de longitud el tamaño del \textit{batch} definido y los tokeniza. El hecho de tokenizar los datos por subconjuntos viene de la necesidad de entrenar el modelo con objetos de la misma longitud, de esta manera cuando el modelo sea entrenado de subconjunto en subconjunto todos los ejemplos corresponderán a tensores del mismo tamaño. 
+
+
+Una vez creado el subconjunto de datos se da paso a tokenizar el conjunto completo según se definió en el apartado de \ref{sec:tokenizador}, obteniendo todos los ejemplos del conjunto de datos tokenizados y listos para entrenar.
+
+
+
+\subsection{Entrenamiento: ajuste del modelo}
+
+El proceso de entrenamiento se realiza bajo un algoritmo de entrenamiento supervisado similar al de cualquier otra red neuronal profunda, salvo por algunas pequeñas modificaciones propias del modelado de lenguaje.
+
+De manera general, cabe mencionar que debemos iterar el entrenamiento a lo largo del número de \textit{epochs} seleccionado y a su vez, para cada unos de los lotes en que vamos a dividir nuestros datos. Así, como primer paso, debemos seleccionar subconjunto correspondiente de la \textit{dataset} para realizar el entrenamiento poco a poco. A continuación, se suceden el resto de las acciones comentadas en las siguientes líneas.
+
+El modelo utilizado T5, como se ha visto en anteriores secciones, tiene su origen en redes neuronales recurrentes. Este tipo de red, al igual que cualquier otra red profunda está compuesta de neuronas dispuestas en diferentes capas formando una red completa. Cada una de las neuronas de una capa están conectadas a las neuronas de las siguientes capas y de esta manera, los resultados producidos por una neurona pueden ser transmitidos, a través de las conexiones, al resto de neuronas de la siguiente capa. Este proceso de propagación de los valores producidos por una neurona hacia las neuronas siguientes se denomina \textit{forward propagation} o propagación hacia delante.
+
+Así pues, el primer paso a realizar en nuestro proceso de ajustar este modelo T5, consiste en establecer a cero los valores de los gradientes del optimizador que pudieran haber sido calculados anteriormente, para después realizar la propagación hacia delante a través del modelo utilizado. 
+
+Para que el modelo pueda realizar el ajuste debemos introducirle los datos anteriormente tokenizados de la entrada y de las etiquetas. El resultado de este proceso está compuesto, entre otros componentes, por los valores de pérdida (\textit{loss}) que evalúan la desviación de las predicciones realizadas para cada uno de los ejemplos de entrada respecto a los datos de la etiqueta (reales). Estos valores nos sirven para conocer la evolución de aprendizaje del modelo y comprobar el momento en el que converge el entrenamiento.
+
+A continuación, realizamos el descenso de gradiente como algoritmo de propagación hacia atrás (\textit{backward propagation}) empleando el \textit{loss} o errores proporcionadas por el modelo en el paso anterior. Por último, actualizaremos los hiperparámetros del entrenamiento a través del optimizador definido para este modelo. 
+
+Además, para cada \textit{step} guardamos en una lista el error o \textit{loss} de ese paso, de tal manera que cada cien pasos (según hemos establecido, el valor ha sido elegido de manera arbitraria) calculamos la media de los errores y la almacenamos en una lista para posteriormente comprender de manera visual la evolución de este parámetro ya que simboliza cómo de bien está aprendiendo nuestro modelo.
+
+La ejecución de una sola \textit{epoch} sobre el total de ejemplos definidos tomó en torno a 45 minutos. De esta manera ejecutamos seis \textit{epochs} completas almacenando toda la información que pudimos obtener para observar la evolución del aprendizaje.
+
+
+%De esta manera ejecutamos seis \textit{epochs} completas obteniendo toda la información que pudimos obtener para realizar la evaluación posterior.
+
+%\subsection{Evaluación del modelo}
+
+%Una vez que se ha terminado el entrenamiento del modelo, se pasa a la fase de evaluación. En esta fase, se hace uso del conjunto de datos de validación del mismo conjunto de datos WebNLG, a los que aplicamos el mismo proceso de limpieza, preprocesado y tokenización que a los datos utilizados durante el ajuste. 
+%La evaluación se realiza midiendo el error o desviación media de los datos generados por el modelo al utilizar como entrada estos datos de evaluación, respecto a los datos reales que se encuentran en el conjunto original. Concretamente, se comparan los \textit{tokens} de estos datos y no las palabras en sí.
+
+%\subsubsection{Curvas de aprendizaje}
+
+
+\begin{figure}[!h]
+	\centering
+	%
+	\begin{SubFloat}
+		{\label{fig:1epoch}%
+			\textit{Epoch} 1 de entrenamiento}%
+		\includegraphics[width=0.8\textwidth]%
+		{Imagenes/Bitmap/05SistemaFinal/nueva1}%
+	\end{SubFloat}
+	\vspace{10mm}
+	\begin{SubFloat}
+		{\label{fig:3epoch}%
+			\textit{Epoch} 3 de entrenamiento}%
+		\includegraphics[width=0.46\textwidth]%
+		{Imagenes/Bitmap/05SistemaFinal/nueva2}%
+	\end{SubFloat}
+	\hspace{5mm}
+	\begin{SubFloat}
+		{\label{fig:5epoch}%
+			\textit{Epoch} 5 de entrenamiento}%
+		\includegraphics[width=0.46\textwidth]%
+		{Imagenes/Bitmap/05SistemaFinal/nueva3}%
+	\end{SubFloat}
+	\qquad
+	\caption{Evolución del \textit{loss} respecto al número de \textit{epoch}%
+		\label{fig:epochs}}
+	
+\end{figure}
+
+
+En las figuras \ref{fig:epochs} se puede apreciar la evolución del la función de pérdida (\textit{loss}) a lo largo de diferentes \textit{epochs}. En la primera \textit{epoch}, figura\ref{fig:1epoch}, esta función sufre un gran descenso al principio del entrenamiento debido al aprendizaje que adquiere el modelo. Este descenso, llegado a un punto, se ralentiza y la función de pérdida continua disminuyendo a un ritmo mucho menor. En las gráficas del las figuras \ref{fig:3epoch} y \ref{fig:5epoch}, se puede apreciar más de cerca lo que ocurre durante estas iteraciones en las que el modelo aprende pero no se produce una mejora significativa.
+
+
+
+La anterior función nos permite conocer el error del modelo frente a los datos de salida. De igual manera, es necesario conocer como de bien se comporta nuestro modelo frente a la información real de salida. Para medirlo, vamos a tener en cuenta dos métricas. 
+
+Por una parte, la \textit{accuracy} nos arrojará una media de la precisión de los datos generados por el modelo para cada uno de los ejemplos de evaluación respecto a la salida real. Esta métrica se puede implementar a través de la biblioteca \textit{metrics} de \textit{sklearn}. Sin embargo, esta medida únicamente nos devuelve la exactitud entre los datos de generados y los datos reales por lo que dos oraciones ligeramente similares como ``Hola, me llamo Daniel'' y ``Hola, mi nombre es daniel'' serán etiquetadas con un valor de 0.0 debido a que no son exactamente la misma. Por ello, hemos considerado además la utilización de otra métrica que mide la precisión en base a la similitud entre dos oraciones. Los resultados de aplicar a las oraciones de ejemplo anteriores dichas métricas se encuentran en el código \ref{lst:metrics}. 
+
+
+\begin{lstlisting}[language=Python, caption=Tokenizador con max\_length igual a 3, label={lst:metrics}]
+    metrics.accuracy_score(["Hola, me llamo Daniel"], ["Hola, mi nombre es daniel"])
+>>  0.0
+
+    similarity("Hola, me llamo Daniel", "Hola, mi nombre es daniel")
+>>  0.6521739130434783
+
+\end{lstlisting} 
+
+Aplicando estas métricas durante el ajuste del modelo a lo largo de diferentes \textit{epochs} y obteniendo los datos necesarios para la generación de las gráficas, el proceso de evolución de las métricas resulta en la figura \ref{fig:epochs}.
+
+\section{Preprocesado de los datos}
+
+Como se presentó anteriormente, la introducción de los datos de entrada en forma de tripletas puede realizarse de manera individual o colectiva. La generación de texto en lenguaje natural a partir de tripletas independientes puede resultar en un texto para nada natural. Por el contrario, una gran cantidad de tripletas introducidas al modelo daría lugar a un texto en ocasiones poco cohesionado debido a la pérdida de información potencialmente importante durante la generación. Si probamos en la práctica en nuestro modelo ajustado estos dos casos extremos de datos de entrada los resultados serían los observados en la tabla \ref{tab:necesidad_agrupacion}. Mientras que en el primer caso, el resultado son oraciones sueltas con toda la información, en el caso de introducir una gran cantidad de tripletas directamente al modelo, se tiende a perder una gran cantidad de información. Con un número adecuado de tripletas no se pierde información importante aún resultando en un texto fluido.
+
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{p{0.20\linewidth} | p{0.15\linewidth} | p{0.55\linewidth}}
+\hline
+\multirow{2}{30mm}{Tripletas independientes} 
+    & Entrada 
+        & \begin{tabular}[l]{@{}l@{}}Mary | birth date | 18-08-1985\\ Mary | birth place | London\\ Mary | occupation | pilot\end{tabular}  \\
+    & Salida  
+        & Mary was born on 18-05-1985.  Mary was born in London. Mary was a pilot. \\ \hline
+\multirow{2}{30mm}{Tripletas completamente agrupadas} 
+    & Entrada 
+        & Mary | birth date | 18-05-1985 \&\& Mary | birth place | London \&\& Mary | occupation | pilot \&\& Mary | father's name | Juan \&\& Juan | occupation  | teacher \&\& Mary | moather's name | Julia \&\& Juan | occupation  | jurist \&\& Mary | friends | Eve and Joan \&\& Juan | university  | UCLA \\
+    & Salida 
+        & Mary was born in London on 18-05-1985. She was a pilot and \\
+        \hline
+\multirow{2}{30mm}{Agrupación de menos de siete tripletas} 
+    & Entrada 
+        & Mary | birth date | 18-05-1985 \&\& Mary | birth place | London \&\& Mary | occupation | pilot \&\& Mary | dad's name | Juan \\
+    & Salida 
+        & Mary was born in London on 18-05-1985. She served as a pilot and has Juan as her parent. \\
+                                                   
+\hline
+\end{tabular}
+\caption{Resultado de generación con tripletas independientes y en una gran agrupación}
+    \label{tab:necesidad_agrupacion}
+\end{center}
+\end{table}
+
+
+Frente a esta problemática y debido a que la historia de vida de una persona puede estar compuesta por decenas de tripletas de entrada, el proceso más lógico a seguir es agrupar las tripletas en grupos procesables por el modelo lo suficientemente grandes como para que se genere un texto fluido, a la vez que suficientemente pequeño con el fin de que no se pierda información.
+
+\subsubsection{Etiquetado de datos}
+Para dividir estas tripletas en agrupaciones lógicas, se llevará a cabo una primera selección manual. De esta manera, los datos son etiquetados con cierta información que aporta conocimiento sobre la posterior agrupación. Estas etiquetas pueden ser de dos tipos:
+
+\begin{itemize}
+    \item\textbf{Etapas de la vida: \textit{stage}}\hfill
+    
+    Nuestro modelo no puede conocer a qué etapa de la vida corresponde una información. Es por ello, que al agruparse o presentarse la información será necesario presentar de antemano una pequeña guía temporal que nos permita relacionar aquellos datos similares y separarlos de los más distanciados temporalmente. Ejemplos de etapas de la vida pueden ser: infancia, adolescente o edad adulto. Sin embargo, se consideró apropiado que estas etapas no fueran estáticas sino que dependiendo de las etapas establecidas en los datos el sistema se adapte dinámicamente a la existencia de unas u otras.
+    
+    \item\textbf{Temas: \textit{themes}}\hfill
+    
+    Aún dividiendo la información por etapas de la vida pueden generarse grupos de tripletas de gran tamaño. Gracias a este conjunto de etiquetas, los datos podrán ser definidos como perteneciente a un tema, subtema, subsubtema... Posteriormente, se agruparán los datos de manera recursiva por cada uno de los temas y se introducirán al modelo de esta manera.
+    
+    
+\end{itemize}
+
+En la siguiente tabla \ref{tab:Elisa_tags} se muestra el resultado del etiquetado de algunas tripletas referidas a la historia de vida de una chica llamada ``Elisa''. Las primeras cinco tripletas pertenecen a la etapa de vida ``\textit{timeless}'' o ``atemporales'' ya que incluyen información básica sobre el nacimiento o nombres de los padres. Por el contrario, la última tripleta hace referencia al tema ``amigos'' dentro de la etapa de la vida ``\textit{late childhood}'' o ``niñez tardía''. Además, se muestra el etiquetado por temas, los ejemplos que mejor explican esta organización son la cuarta y la quinta tripleta. Estos tienen como tema principal ``familia'' y como subtema ``padres'' o ``hermanos''.
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{p{0.5\linewidth} | p{0.15\linewidth} | p{0.2\linewidth}}
+\hline
+
+\textbf{tripleta} & \textbf{etapa} & \textbf{temas}  \\ \hline
+Elisa | birth place | Lugo & timeless & basic \\ \hline
+Elisa | birth date | 18-05-1986 & timeless & basic \\ \hline
+Elisa | father's name | Juan & timeless & basic  \\ \hline
+Juan | occupation | labrador & timeless & family, parents  \\ \hline
+Elisa | number of sisters | 2 & timeless & family, siblings  \\ \hline
+Elisa | best friend | Veronica & late childhood & friends  \\ \hline
+    
+\hline
+\end{tabular}
+\caption{Resultado de generación con tripletas independientes y en una gran agrupación}
+    \label{tab:Elisa_tags}
+\end{center}
+\end{table}
+
+
+\subsubsection{\textit{Clustering} de datos: Algoritmo \textit{K-Mean}}
+
+El anterior método manual realiza agrupaciones de datos a alto nivel. Sin embargo, puede haber ocasiones en los que el tema de una tripleta sea desconocido para el usuario o la cantidad de tripletas de un tema sea demasiado grande para ser procesado por el modelo. Para realizar esta agrupación a más bajo nivel de los datos, se propone la utilización de algoritmos de \textit{clustering} que permitan agrupar de manera automática los datos pertenecientes a una agrupación en grupos de un tamaño inferior al recomendado (siete).
+
+
+
+Partiendo de unos datos de entrada generados mediante la construcción de una clase que convierte unos datos introducidos en forma de tripleta junto con su etapa de la vida y temas a un archivo \textit{json}, el primer paso a realizar para llevar a cabo la agrupación mediante \textit{clustering} es transformar los datos a un objeto manipulable de tipo \textit{DataFrame}. Un extracto de estos datos en un objeto de este tipo se muestra en la figura \ref{fig:elisa_df}.
+
+\begin{figure}[!h]
+	\centering%
+	\includegraphics[width=1.0\textwidth]%
+	{Imagenes/Bitmap/05SistemaFinal/elisa_df}%
+	\caption{Extracto de los datos de Elisa en formato \textit{DataFrame}%
+		\label{fig:elisa_df}}
+\end{figure}
+
+
+Una vez preparados los datos de entrada se puede realizar la agrupación en sí misma. Para realizar el proceso de agrupación vamos a utilizar el algoritmo de \textit{clustering} \textit{k-means}. Este algoritmo se basa en clasificación no supervisada para agrupar los elementos en k grupos en función de sus características. La agrupación se trata como un problema de optimización que trata de minimizar la distancia total entre cada objeto y el centroide de su grupo o clúster. Normalmente se utiliza la distancia cuadrática para calcular dicha distancia entre los elementos.
+
+El algoritmo \textit{k-means} consta de tres pasos. El primero de ellos, la inicialización, consiste en escoger $k$ centroides del  espacio de datos (siendo $k$ el número de grupos a generar), cada centroide actuará como representante de su grupo. Existen diversos métodos de selección de los centroides, a menudo suele utilizarse la selección aleatoria. A continuación, se asigna a cada uno de los centroides los elementos más cercanos calculando las distancias a cada uno de los elementos. Para finalizar, se actualiza la posición del nuevo centroide representante del clúster como la posición promedio de los elementos pertenecientes al grupo. Este proceso de creación de grupos y actualización de centroides se realiza de manera iterativa hasta que la distancia entre centroides sea superior a un umbral mímimo.
+
+
+Los elementos tratados por este algoritmo son datos numéricos potencialmente en punto flotante, por lo tanto antes de clasificar los datos de entradas haciendo uso de \textit{k-means} tenemos que convertir los datos al formato adecuado.
+
+Para convertir los datos de entrada, cada uno de ellos formado por una cadena de caracteres, a datos numéricos vamos a utilizar un programa de vectorización llamado \textit{TfidfVectorizer}. Disponible en \textit{Python} a través de la biblioteca \textit{sklearn}, se trata de un algoritmo de extracción de características que convierte secuencias de palabras en matrices  para que puedan ser procesadas por algoritmos basados en operaciones numéricas.
+
+Una vez convertida la secuencia de entrada a una matriz procesable por el algoritmo, se construye una instancia del algoritmo \textit{k-means} haciendo uso del módulo \textit{KMeans} accesible a través de \textit{sklearn} con el número de clústers a crear. Este número de clústers lo calculamos a partir de la longitud de los datos y el límite de tamaño para el clúster, siete. A continuación, se ejecuta el algoritmo utilizando el método \textit{fit} y obtenemos la lista de \textit{clusters} con el atributo \textit{labels\_} accesible a través del algoritmo.
+Para terminar, añadimos a los datos de entrada información sobre la clase a la que pertenecen cada uno e información sobre la matriz de características. El resultado de aplicar esta agrupación sin tener en cuenta los temas se muestra en la figura \ref{fig:elisa_kmeans}.
+
+\begin{figure}[!h]
+	\centering%
+	\includegraphics[width=1.0\textwidth]%
+	{Imagenes/Bitmap/05SistemaFinal/elisa_kmeans}%
+	\caption{Agrupación de los datos con \textit{K-Means}%
+		\label{fig:elisa_kmeans}}
+\end{figure}
+
+Como se puede apreciar en la anterior figura, aún no utilizando en absoluto los temas asociados a cada tripleta, existe bastante relación entre los temas establecidos y el \textit{cluster} asignado. Por una parte agrupa las dos primeras tripletas que representan información sobre el lugar y fecha de nacimiento de Elisa con esta misma información pero de los padres Eva y Juan (clúster número 2). En otro clúster, agrupa los datos sobre los oficios de los padres (clúster número 0). Y por último, comprende como un solo grupo la información sobre la familia en general, como el tamaño y posición económica, número de hermanos y nombres de los padres. Atendiendo a las agrupaciones realizadas podemos encontrar intuitivamente esta misma agrupación u otras similares. Como conclusión, este algoritmo ha agrupado los datos de entrada de manera lógica y coherente por lo que cuando se realice sobre los datos a bajo nivel no etiquetados como temas, es de esperar que tome el mismo comportamiento.
+
+
+
+\section{Postprocesado de los datos}
+
+La capa de postprocesado realiza una serie de tareas que son necesarias para la generación controlada del texto de salida del modelo. Entre estas tareas se encuentra la selección de los datos que finalmente conformarán el modelo y el orden y estructura que se le conferirá a dicho texto de salida.
+
+Ya que la decisión de selección y ordenamiento de los datos podría variar de una persona a otra, se dejará precisamente esta iniciativa en el usuario. De esta manera, se modifica la salida del modelo (en ocasiones la entrada) para que contenga exactamente los datos que se hayan precisado como entrada y la estructura determinada para el texto final.
+
+Para poder seleccionar los datos de entrada con diferentes criterios, se construye un grafo de conocimiento a partir de las tripletas que componen la entrada. De esta manera, como estrategia de selección se permite al usuario que seleccione uno de los nodos con la finalidad de conocer únicamente la información de dicho nodo. Además, también se modificó el código para que pudiera seleccionar las etapas de la vida y temas a incluir en la salida.
+
+Para realizar la ordenación del texto de salida se añadió el código necesario para que el usuario pudiera introducir el orden deseado según las etiquetas de cada una de las tripletas.
+
+Todo este proceso de selección y ordenación se programó para que se realizara por consola de comandos. Sin embargo, para un usuario cualquiera esta no sería la manera óptima de realizarlo por lo que de manera adicional se creó una pequeña interfaz que permite realizar todas estas acciones de manera mucho más sencilla. Esta interfaz, junto con las acciones de selección y de estructuración se describirán en profundidad en el siguiente capítulo.
+
+

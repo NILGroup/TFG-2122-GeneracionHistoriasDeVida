@@ -93,9 +93,10 @@ class TripleList(list):
         return triplesByTags
 
     def getTagStages(self):
-        aux = set()
+        aux = list()
         for triple in self:
-            aux.add(triple.getStage())
+            if triple.getStage() not in aux:
+                aux.append(triple.getStage())
         return aux
 
         

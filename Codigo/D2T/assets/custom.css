@@ -1,3 +1,4 @@
+/* Drag */
 .gu-mirror {
   position: fixed !important;
   margin: 0 !important;
@@ -21,16 +22,22 @@
   filter: alpha(opacity=20);
 }
 
+/* styles */
 .stage{
-  background-color: rgba(62, 13, 42, 0.646);
+  background-color: rgba(91, 56, 77, 0.654);
   color: white;
   border: 0px;
+  width: 100%;
 }
 
+.card:hover{
+  color:aqua !important;
+}
 .tag{
-  background-color: rgba(208, 135, 117, 0.857);
+  background-color: rgba(193, 139, 127, 0.721);
   color:white;
   border: 0px;
+  width: 100%;
 }
 
 .NotSelected{
@@ -39,197 +46,49 @@
   border: 0px;
 }
 
-.button {
-	background-color:rgba(208, 135, 117, 0.857);
-	border-radius:20px;
-	border:1px solid rgba(169, 117, 103, 0.857);
+.options_button {
+	background-color:rgba(255, 255, 255, 0.857);
+	border-radius:5px;
+	border:0px;
 	display:inline-block;
 	cursor:pointer;
-	color:#ffffff;
+	color:#404040;
 	font-family:Arial;
 	font-size:1em;
 	padding:0em 1em 1em 1em;
 	text-decoration:none;
 }
-
-/*
-*, *:before, *:after {
-  box-sizing: border-box;
+.options_button:hover{
+  background-color:rgba(204, 204, 204, 0.227);
+  border:0px;
 }
 
-h1 {
+.card{
+  border:0px !important;
+  padding:1px;
+}
+
+#titulo{
   text-align: center;
 }
 
-.tagsboard {
-  max-width: 900px;
-  margin: 2em auto;
-  display: flex;
-  flex-flow: row wrap;
+#ppal_container{
+  padding: 2em 1em 1em 1em;
 }
 
-.cell {
-  position: relative;
-  display: flex;
-  padding: 1em;
-}
-.cell:empty {
-  padding: 0;
+.subtitle{
+  font-weight: 400;
+  text-align: center;
+  color: #1f1f1f;
 }
 
-.cell.drop-here:before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: -2px;
-  top: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
-  border-radius: 1rem;
-  border: 4px dashed #ccc;
-}
-
-.box {
-  position: relative;
-  border: 1px solid #ccc;
-  padding: 1rem;
+#tags_header{
+  display: inline-block;
   width: 100%;
-  background: #fff;
-  transform-origin: 50% 0;
-  overflow: hidden;
-  transition: height 1000ms;
-  transition-timing-function: cubic-bezier(0.52, 0.005, 0.585, 1.265);
-}
-.box h2 {
-  margin: 0;
-  background: #eee;
-  margin: -1rem -1rem 1rem -1rem;
-  padding: 0.6rem 3.6rem 0.6rem 1rem;
-  font-size: 1.2em;
-}
-.box .draggable {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  background: url(https://upload.wikimedia.org/wikipedia/commons/0/0f/Move_icon.svg) no-repeat 50% 50%/110%;
-  opacity: 0.2;
-  cursor: move;
-  /* fallback if grab cursor is unsupported *//*
-  cursor: grab;
-  cursor: -webkit-grab;
-}
-.box .draggable:hover {
-  opacity: 0.5;
-}
-.box .draggable:active {
-  cursor: grabbing;
-  cursor: -webkit-grabbing;
+  padding-top: 1em;
+  padding-bottom: 1em;
 }
 
-.box1 {
-  border-color: #c9b79c;
+#drag_container{
+  width: 100%;
 }
-.box1 h2 {
-  background: #e6d1b3;
-}
-
-.box2 {
-  border-color: #c0c99c;
-}
-.box2 h2 {
-  background: #dbe6b3;
-}
-
-.box3 {
-  border-color: #a5c99c;
-}
-.box3 h2 {
-  background: #bde6b3;
-}
-
-.box4 {
-  border-color: #9cc9ae;
-}
-.box4 h2 {
-  background: #b3e6c7;
-}
-
-.box5 {
-  border-color: #9cc9c9;
-}
-.box5 h2 {
-  background: #b3e6e6;
-}
-
-.box6 {
-  border-color: #9caec9;
-}
-.box6 h2 {
-  background: #b3c7e6;
-}
-
-.box7 {
-  border-color: #a59cc9;
-}
-.box7 h2 {
-  background: #bdb3e6;
-}
-
-.box8 {
-  border-color: #c09cc9;
-}
-.box8 h2 {
-  background: #dbb3e6;
-}
-
-.box9 {
-  border-color: #c99cb7;
-}
-.box9 h2 {
-  background: #e6b3d1;
-}
-
-.box10 {
-  border-color: #c99c9c;
-}
-.box10 h2 {
-  background: #e6b3b3;
-}
-
-.box.dragged {
-  z-index: 2;
-  opacity: 0.85;
-  transition: none;
-  box-shadow: 0.1rem 0.1rem 1rem rgba(0, 0, 0, 0.1);
-}
-
-.box.dropped,
-.box.dropped-to-target {
-  z-index: 2;
-  transition: opacity 300ms, transform 300ms, box-shadow 300ms;
-  transition-timing-function: cubic-bezier(0.52, 0.005, 0.585, 1.265);
-}
-
-.box.shift-preview {
-  z-index: 1;
-  transition: transform 600ms;
-}
-
-.box.shift-preview-end {
-  z-index: 1;
-  transition: transform 200ms;
-}
-
-@media (max-width: 800px) {
-  .cell {
-    width: 50%;
-  }
-}
-@media (max-width: 500px) {
-  .cell {
-    width: 100%;
-  }
-}
-*/
