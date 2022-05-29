@@ -28,7 +28,7 @@
     },
     {
         "source": "Elisa",
-        "relation": "father",
+        "relation": "father's name",
         "target": "Juan",
         "stage": "timeless",
         "themes": [
@@ -37,7 +37,7 @@
     },
     {
         "source": "Elisa",
-        "relation": "mother",
+        "relation": "mother's name",
         "target": "Eva",
         "stage": "timeless",
         "themes": [

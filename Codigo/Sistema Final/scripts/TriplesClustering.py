@@ -20,6 +20,13 @@ import pandas as pd
 class TriplesClustering:
 
     def __init__(self, triples):
+        """
+        This function takes in a dataframe of triples and creates a new column called 'cleaned' which is
+        the same as the 'input' column. It then creates a list of vectorized triples, a list of
+        clusters, and two empty strings
+        
+        :param triples: a dataframe with the following columns:
+        """
         triples['cleaned'] = triples['input']
         self.triples = triples
         self.vectorized_triples = []
@@ -29,29 +36,55 @@ class TriplesClustering:
         
 
     def setTriples(self, triples):
+        """
+        This function takes a list of triples and sets the triples attribute of the object to the list of
+        triples
+        
+        :param triples: a list of triples, where each triple is a list of three strings
+        """
         self.triples = triples
 
     def getTriples(self):
+        """
+        It returns the triples.
+        :return: The triples are being returned.
+        """
         return self.triples
 
     def getVectorizedTriples(self):
+        """
+        It takes a list of triples and returns a list of triples where each triple is a list of three
+        lists of integers
+        :return: The vectorized triples.
+        """
         return self.vectorized_triples
     
     def getClusters(self):
+        """
+        It returns the clusters
+        :return: The clusters
+        """
         return self.clusters
 
     def cluster_mayor6(self): 
+        """
+        > If the number of clusters is greater than 7, return True. Otherwise, return False
+        :return: True or False
+        """
         conteo=Counter(self.clusters)
 
         for clave in conteo:  
             valor=conteo[clave]
-            if valor >7:
+            if valor >6:
                 return True
 
         return False
         
 
     def genClusters(self):
+        """
+        It takes a dataframe of triples, and clusters them into groups of 6 or less. 
+        """
         
         self.clusters = np.zeros(shape = len(self.triples['cleaned']), dtype = int)
         self.triples['cluster'] = self.clusters
@@ -90,6 +123,11 @@ class TriplesClustering:
 
         
     def get_top_keywords(self, n_terms): 
+        """
+        For each cluster, find the n terms that have the highest tf-idf score.
+        
+        :param n_terms: the number of terms to return for each cluster
+        """
         """This function returns the keywords for each centroid of the KMeans""" 
 
         X = self.getVectorizedTriples()

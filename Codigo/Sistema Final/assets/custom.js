@@ -31,7 +31,6 @@ window.dash_clientside.clientside = {
     for (var item of pen){
         string += item.id + ",";
     }
-    console.log(string);
     return string;
   }
 }

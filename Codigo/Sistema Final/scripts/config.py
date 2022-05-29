@@ -1,3 +1,4 @@
+# The above code is defining the hyperparameters for the model.
 DIR             = 'D2T'
 
 WEBNLG          = "https://gitlab.com/shimorina/webnlg-dataset/-/archive/master/webnlg-dataset-master.zip?path=release_v3.0/en/train"
