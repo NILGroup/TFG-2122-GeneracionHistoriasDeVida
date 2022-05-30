@@ -158,8 +158,6 @@ class Model:
         self.model.eval()
         encode_text = encode_text.to(self.dev)
 
-        outputs = self.model.generate(encode_text)
-
         outputs = self.model.generate(encode_text, 
                     do_sample = do_sample,    #Si false devuelve distintas frases
                     num_beams = num_beams,
@@ -171,7 +169,7 @@ class Model:
                     top_p = float(top_p),          #If set to float < 1, only the most probable tokens with probabilities that add up to top_p or higher are kept for generation.
                     temperature = float(temperature),
                     repetition_penalty = penalty,#1.0 No penalty
-                    num_return_sequences = num_return_sequences,
+                    num_return_sequences = 1,
                     early_stopping = early_stopping)
 
         return outputs

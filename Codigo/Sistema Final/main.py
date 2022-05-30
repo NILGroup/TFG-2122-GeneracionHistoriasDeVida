@@ -28,7 +28,7 @@ from dash.dependencies import ClientsideFunction, Input, Output
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css',dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets,external_scripts=["https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.2/dragula.min.js"])
 app.title = "Generación de historias de vida"
-
+application = app.server
 
 FILEURL = "data/elisaStoryLife.json"
 SELECTED_TAGS = []  
@@ -42,7 +42,7 @@ model.load_model("models/t5_1epoch_30000examples")
 
 
 def printAllText(triplesClusters, do_sample = False, num_beams = 1, no_repeat_ngram_size = 1, min_length = 0,
-    max_length = 500, top_k = 50, top_p = 0.92, temperature = 1.0, penalty = 1.0, num_beam_groups=1,num_return_sequences=1): 
+    max_length = 500, top_k = 50, top_p = 0.92, temperature = 1.0, penalty = 1.0, num_beam_groups=1,num_return_sequences=1,profundidad = 0): 
     """
     It takes the triplesClusters dictionary as input and recursively calls itself to generate text for
     each cluster. 
@@ -96,7 +96,10 @@ def printAllText(triplesClusters, do_sample = False, num_beams = 1, no_repeat_ng
 
         else:
             final_text+=printAllText(triplesClusters= triplesClusters[item],do_sample = do_sample, num_beams = num_beams, no_repeat_ngram_size = no_repeat_ngram_size,
-            min_length = min_length, max_length = max_length, top_k  = top_k, top_p = top_p, temperature  = temperature, penalty = penalty, num_beam_groups = num_beam_groups) + "\n"
+            min_length = min_length, max_length = max_length, top_k  = top_k, top_p = top_p, temperature  = temperature, penalty = penalty, num_beam_groups = num_beam_groups,
+            profundidad = profundidad + 1)
+        if(profundidad == 0):
+            final_text += "\n\n"
     return final_text
 
 
@@ -124,7 +127,9 @@ def filteredTriplesByTags(triplesTree, themesSelection):
     else:
         diccionario = {}
         for t in themesSelection:
-            if 'tag' in triplesTree[t]:
+            if t not in triplesTree:
+                continue
+            elif 'tag' in triplesTree[t]:
                 lista = filteredTriplesByTags(triplesTree[t]['tag'], themesSelection[t])
                 if(lista==[]):
                     diccionario[t] = triplesTree[t]
@@ -510,7 +515,7 @@ app.layout = html.Div(
                                 style={'style':'inline-block', 'width':'100%'},
                                 children=[
                                     html.H2('Salida',style={'float':'left'}),
-                                    html.Button('Generar', id="generator", n_clicks=0, style={'float':'right'}, className="button")                                
+                                    html.Button('Generar', id="generator", n_clicks=0, style={'float':'right'}, className="button")                         
                                 ]
                             ),
                             dcc.Textarea(
@@ -767,6 +772,7 @@ app.layout = html.Div(
 )
 def update_output(*args):
     changed_id = [p['prop_id'] for p in dash.callback_context.triggered]    
+    select = []
     for changed in changed_id:
         
         changed = changed.split('.')[0]
@@ -796,9 +802,10 @@ def update_output(*args):
                 styles.append('theme tag')
             else:
                 styles.append('theme stage')
+            select.append(theme_name)
             
 
-    return network_graph(FILEURL, SELECTED_TAGS), styles, (',').join(SELECTED_TAGS)
+    return network_graph(FILEURL, select), styles, (',').join(select)
 
 @app.callback(
     Output('hover-data', 'children'),
@@ -871,11 +878,14 @@ do_sample, max_len,p,k,temp,penal, num_beams, no_repeat_ngram_size,num_beam_grou
             
         penal = abs(2-penal)
         selected_tags = selected_tags.split(',')
+
         if(len(selected_tags)==0 and not contenido):
             return ''
         data = TripleList(TRIPLES.to_json())
+
         if (node):
             data = data.filterbyNode(node)
+
         triplesTree = data.triplesByTags()
 
 
@@ -885,7 +895,7 @@ do_sample, max_len,p,k,temp,penal, num_beams, no_repeat_ngram_size,num_beam_grou
             if tag in selected_tags:
                 order_tags.append(tag)
 
-        
+
         print("Generando...")
 
         if(experto and contenido and contenido!='' and contenido!=' '):
